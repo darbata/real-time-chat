@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STOMP WebSocket Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0c0e14;
+            --surface: #13161f;
+            --surface2: #1a1e2a;
+            --border: #252a3a;
+            --text: #c8cdd8;
+            --text-dim: #6b7280;
+            --accent: #22d3ee;
+            --accent-dim: rgba(34,211,238,0.08);
+            --green: #34d399;
+            --green-dim: rgba(52,211,153,0.1);
+            --red: #f87171;
+            --red-dim: rgba(248,113,113,0.1);
+            --yellow: #fbbf24;
+            --yellow-dim: rgba(251,191,36,0.1);
+            --purple: #a78bfa;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'DM Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: auto 1fr;
+            height: 100vh;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            background: var(--surface);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-family: var(--mono);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: -0.3px;
+        }
+
+        .header h1 span { color: var(--text-dim); font-weight: 400; }
+
+        .status-pill {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 99px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-pill::before {
+            content: '';
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .status-pill.disconnected { background: var(--red-dim); color: var(--red); }
+        .status-pill.disconnected::before { background: var(--red); }
+        .status-pill.connected { background: var(--green-dim); color: var(--green); }
+        .status-pill.connected::before { background: var(--green); animation: pulse 2s infinite; }
+        .status-pill.connecting { background: var(--yellow-dim); color: var(--yellow); }
+        .status-pill.connecting::before { background: var(--yellow); animation: pulse 0.6s infinite; }
+
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+        .sidebar {
+            background: var(--surface);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            font-family: var(--mono);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 13px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.15s;
+            margin-bottom: 10px;
+        }
+
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+
+        textarea { resize: vertical; min-height: 60px; }
+
+        .input-row { display: flex; gap: 8px; }
+        .input-row > * { flex: 1; }
+
+        button {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            width: 100%;
+        }
+
+        .btn-primary { background: var(--accent); color: var(--bg); }
+        .btn-primary:hover { filter: brightness(1.15); }
+        .btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+        .btn-danger:hover { background: rgba(248,113,113,0.2); }
+        .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--text-dim); }
+        .btn-small { width: auto; padding: 4px 10px; font-size: 11px; }
+
+        .btn-row { display: flex; gap: 8px; }
+        .btn-row button { flex: 1; }
+
+        .sub-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .sub-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--green);
+            background: var(--green-dim);
+            margin-bottom: 4px;
+        }
+
+        .sub-item .unsub {
+            background: none;
+            border: none;
+            color: var(--red);
+            cursor: pointer;
+            font-size: 14px;
+            width: auto;
+            padding: 0 4px;
+            font-family: var(--mono);
+        }
+
+        .main {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            width: auto;
+            border-radius: 0;
+        }
+
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab:hover:not(.active) { color: var(--text); }
+
+        .log-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .log-controls input[type="text"] { margin-bottom: 0; flex: 1; }
+
+        .log-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            font-family: var(--mono);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .log-entry.hidden { display: none; }
+
+        .log-ts { color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
+        .log-type {
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 44px;
+            text-align: center;
+            padding: 0 4px;
+            border-radius: 3px;
+            font-size: 10px;
+            line-height: 20px;
+        }
+        .log-type.tx { color: var(--accent); background: var(--accent-dim); }
+        .log-type.rx { color: var(--green); background: var(--green-dim); }
+        .log-type.sys { color: var(--yellow); background: var(--yellow-dim); }
+        .log-type.err { color: var(--red); background: var(--red-dim); }
+        .log-type.sub { color: var(--purple); background: rgba(167,139,250,0.1); }
+
+        .log-body {
+            word-break: break-all;
+            white-space: pre-wrap;
+            flex: 1;
+            color: var(--text);
+        }
+
+        .log-dest { color: var(--text-dim); }
+
+        .headers-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .header-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .header-row input { margin-bottom: 0; flex: 1; }
+
+        .header-row .remove-header {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            background: none;
+            border: none;
+            color: var(--red);
+            cursor: pointer;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-box {
+            background: var(--surface2);
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-family: var(--mono);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 2px;
+            font-family: var(--mono);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: var(--text-dim);
+            font-family: var(--mono);
+            font-size: 13px;
+        }
+
+        .hint {
+            background: var(--accent-dim);
+            border: 1px solid rgba(34,211,238,0.15);
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            line-height: 1.55;
+            color: var(--text-dim);
+            font-family: var(--mono);
+            position: relative;
+        }
+
+        .hint summary {
+            cursor: pointer;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            user-select: none;
+        }
+
+        .hint summary::before { content: '💡'; font-size: 12px; }
+        .hint summary::after { content: '▸'; transition: transform 0.15s; }
+        .hint[open] summary::after { transform: rotate(90deg); }
+
+        .hint .hint-body { margin-top: 6px; }
+        .hint code {
+            background: rgba(255,255,255,0.06);
+            padding: 1px 5px;
+            border-radius: 3px;
+            color: var(--accent);
+            font-size: 11px;
+        }
+
+        .hint ol, .hint ul { padding-left: 16px; margin: 4px 0; }
+        .hint li { margin-bottom: 3px; }
+
+        [data-tip] {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dashed var(--text-dim);
+        }
+
+        [data-tip]:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            left: 0;
+            bottom: calc(100% + 6px);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            white-space: pre-line;
+            width: max-content;
+            max-width: 260px;
+            z-index: 99;
+            line-height: 1.5;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <h1>STOMP <span>// tester</span></h1>
+        <div class="status-pill disconnected" id="statusPill">Disconnected</div>
+    </div>
+
+    <div class="sidebar">
+        <!-- Connection -->
+        <div class="panel">
+            <div class="panel-title">Connection</div>
+            <details class="hint">
+                <summary>Setup reminder</summary>
+                <div class="hint-body">
+                    <ol>
+                        <li>Spring Boot: register a <code>WebSocketMessageBrokerConfigurer</code> with <code>registerStompEndpoints("/ws")</code> and enable a simple broker on <code>/topic</code>, <code>/queue</code>.</li>
+                        <li><b>SockJS</b> — use <code>http://</code> URL (it negotiates transport). <b>Native WS</b> — use <code>ws://</code> URL.</li>
+                        <li>Add auth headers here (e.g. <code>Authorization: Bearer …</code>) — they're sent in the STOMP CONNECT frame.</li>
+                    </ol>
+                </div>
+            </details>
+            <label><span data-tip="SockJS: http://host/endpoint&#10;Native: ws://host/endpoint&#10;Spring default is usually /ws">WebSocket URL</span></label>
+            <input id="wsUrl" type="text" value="http://localhost:8080/ws" placeholder="ws:// or http:// (SockJS)">
+            <label><span data-tip="SockJS adds fallback transports (XHR, polling)&#10;if native WebSocket isn't available.&#10;Use SockJS if your Spring endpoint has&#10;.withSockJS() configured.">Transport</span></label>
+            <select id="transport">
+                <option value="sockjs">SockJS</option>
+                <option value="native">Native WebSocket</option>
+            </select>
+            <label><span data-tip="Sent in the STOMP CONNECT frame.&#10;Common: login, passcode, Authorization.&#10;Access via StompHeaderAccessor in Spring.">Connect Headers</span></label>
+            <div class="headers-editor" id="connectHeaders">
+                <div class="header-row">
+                    <input type="text" placeholder="key" class="hdr-key">
+                    <input type="text" placeholder="value" class="hdr-val">
+                    <button class="remove-header" onclick="this.parentElement.remove()">×</button>
+                </div>
+            </div>
+            <button class="btn-secondary btn-small" style="margin: 6px 0 12px" onclick="addConnectHeader()">+ Header</button>
+            <div class="btn-row">
+                <button class="btn-primary" id="btnConnect" onclick="doConnect()">Connect</button>
+                <button class="btn-danger" id="btnDisconnect" onclick="doDisconnect()" disabled>Disconnect</button>
+            </div>
+        </div>
+
+        <!-- Subscribe -->
+        <div class="panel">
+            <div class="panel-title">Subscriptions</div>
+            <details class="hint">
+                <summary>Destination patterns</summary>
+                <div class="hint-body">
+                    <ul>
+                        <li><code>/topic/…</code> — broadcast to all subscribers (pub/sub)</li>
+                        <li><code>/queue/…</code> — point-to-point (one consumer)</li>
+                        <li><code>/user/queue/…</code> — user-specific private queue</li>
+                    </ul>
+                    Subscribe first, then send to <code>/app/…</code> — the server's <code>@MessageMapping</code> handler will route the response back to the topic/queue you're subscribed to via <code>@SendTo</code>.
+                </div>
+            </details>
+            <label><span data-tip="The broker destination to listen on.&#10;Must match what the server broadcasts to.">Destination</span></label>
+            <input id="subDest" type="text" value="/topic" placeholder="/topic/...">
+            <button class="btn-secondary" onclick="doSubscribe()">Subscribe</button>
+            <ul class="sub-list" id="subList"></ul>
+        </div>
+
+        <!-- Publish -->
+        <div class="panel">
+            <div class="panel-title">Publish</div>
+            <details class="hint">
+                <summary>Sending messages</summary>
+                <div class="hint-body">
+                    <ol>
+                        <li>Send to <code>/app/…</code> — this hits your <code>@MessageMapping</code> controller methods. The prefix (<code>/app</code>) is set by <code>setApplicationDestinationPrefixes()</code>.</li>
+                        <li>The controller return value + <code>@SendTo("/topic/…")</code> determines where the response goes.</li>
+                        <li>For JSON payloads, set content-type to <code>application/json</code> — Spring will auto-deserialize to your DTO via Jackson.</li>
+                        <li>You can also send directly to <code>/topic/…</code> to bypass the controller (goes straight to broker).</li>
+                    </ol>
+                </div>
+            </details>
+            <label><span data-tip="The /app prefix routes to @MessageMapping.&#10;Sending to /topic/… goes directly to broker.">Destination</span></label>
+            <input id="pubDest" type="text" value="/app/hello" placeholder="/app/...">
+            <label>Content-Type</label>
+            <select id="pubContentType">
+                <option value="text/plain">text/plain</option>
+                <option value="application/json">application/json</option>
+            </select>
+            <label>Payload</label>
+            <textarea id="pubBody" placeholder='{"key": "value"} or plain text'>test message</textarea>
+            <label>Custom Headers</label>
+            <div class="headers-editor" id="sendHeaders"></div>
+            <button class="btn-secondary btn-small" style="margin: 6px 0 12px" onclick="addSendHeader()">+ Header</button>
+            <div class="btn-row">
+                <button class="btn-primary" onclick="doSend()">Send</button>
+                <button class="btn-secondary" onclick="doSendRepeat()">Send ×N</button>
+            </div>
+            <div style="margin-top:8px">
+                <label>Repeat Count</label>
+                <input id="repeatN" type="number" value="5" min="1" max="1000" style="width:80px">
+                <label>Interval (ms)</label>
+                <input id="repeatMs" type="number" value="200" min="0" max="60000" style="width:80px">
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="panel">
+            <div class="panel-title">Stats</div>
+            <div class="stat-grid">
+                <div class="stat-box"><div class="stat-val" id="statTx">0</div><div class="stat-label">Sent</div></div>
+                <div class="stat-box"><div class="stat-val" id="statRx" style="color:var(--green)">0</div><div class="stat-label">Received</div></div>
+                <div class="stat-box"><div class="stat-val" id="statSubs" style="color:var(--purple)">0</div><div class="stat-label">Subs</div></div>
+                <div class="stat-box"><div class="stat-val" id="statErr" style="color:var(--red)">0</div><div class="stat-label">Errors</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="tabs">
+            <button class="tab active" data-filter="all">All</button>
+            <button class="tab" data-filter="tx">Sent</button>
+            <button class="tab" data-filter="rx">Received</button>
+            <button class="tab" data-filter="sub">Subs</button>
+            <button class="tab" data-filter="sys">System</button>
+            <button class="tab" data-filter="err">Errors</button>
+        </div>
+        <div class="log-controls">
+            <input type="text" id="logFilter" placeholder="Filter log…">
+            <button class="btn-secondary btn-small" onclick="clearLog()">Clear</button>
+            <button class="btn-secondary btn-small" onclick="exportLog()">Export</button>
+        </div>
+        <div class="log-area" id="logArea">
+            <div class="empty-state" style="flex-direction:column;gap:12px;text-align:left;max-width:520px;line-height:1.7;padding:24px">
+                <div style="font-size:14px;color:var(--accent);font-weight:600">Quick Reference</div>
+                <div style="font-size:12px"><b style="color:var(--yellow)">1.</b> Connect — point to your STOMP endpoint (e.g. <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">http://localhost:8080/ws</code>)<br>
+                    <b style="color:var(--yellow)">2.</b> Subscribe — listen on a destination like <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">/topic/messages</code><br>
+                    <b style="color:var(--yellow)">3.</b> Publish — send to <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">/app/hello</code> (hits @MessageMapping) or directly to <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--accent)">/topic/…</code> (bypasses controller)<br>
+                    <b style="color:var(--yellow)">4.</b> Watch the log — filter by type (Sent/Received/Errors) or search text</div>
+                <div style="font-size:11px;color:var(--text-dim);border-top:1px solid var(--border);padding-top:8px">Hover dashed-underlined labels for tooltips · Click 💡 hints in each panel for details</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let client = null;
+    let subs = {};
+    let subIdCounter = 0;
+    let stats = { tx: 0, rx: 0, subs: 0, err: 0 };
+    let logEntries = [];
+    let activeFilter = 'all';
+
+    // --- Helpers ---
+    function ts() {
+        const d = new Date();
+        return d.toLocaleTimeString('en-GB', { hour12: false }) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+    }
+
+    function log(type, body, dest) {
+        const entry = { type, body, dest, time: ts() };
+        logEntries.push(entry);
+        renderLogEntry(entry);
+        if (type === 'err') stats.err++;
+        updateStats();
+    }
+
+    function renderLogEntry(e) {
+        const area = document.getElementById('logArea');
+        if (area.querySelector('.empty-state')) area.innerHTML = '';
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.dataset.type = e.type;
+        const destStr = e.dest ? `<span class="log-dest"> → ${e.dest}</span>` : '';
+        div.innerHTML = `<span class="log-ts">${e.time}</span><span class="log-type ${e.type}">${e.type.toUpperCase()}</span><span class="log-body">${escHtml(e.body)}${destStr}</span>`;
+        applyFilters(div);
+        area.appendChild(div);
+        area.scrollTop = area.scrollHeight;
+    }
+
+    function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function updateStats() {
+        document.getElementById('statTx').textContent = stats.tx;
+        document.getElementById('statRx').textContent = stats.rx;
+        document.getElementById('statSubs').textContent = stats.subs;
+        document.getElementById('statErr').textContent = stats.err;
+    }
+
+    function setStatus(s) {
+        const pill = document.getElementById('statusPill');
+        pill.className = 'status-pill ' + s;
+        pill.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function getHeaders(containerId) {
+        const headers = {};
+        document.querySelectorAll(`#${containerId} .header-row`).forEach(row => {
+            const k = row.querySelector('.hdr-key').value.trim();
+            const v = row.querySelector('.hdr-val').value.trim();
+            if (k) headers[k] = v;
+        });
+        return headers;
+    }
+
+    function addHeaderRow(containerId) {
+        const div = document.createElement('div');
+        div.className = 'header-row';
+        div.innerHTML = `<input type="text" placeholder="key" class="hdr-key"><input type="text" placeholder="value" class="hdr-val"><button class="remove-header" onclick="this.parentElement.remove()">×</button>`;
+        document.getElementById(containerId).appendChild(div);
+    }
+
+    function addConnectHeader() { addHeaderRow('connectHeaders'); }
+    function addSendHeader() { addHeaderRow('sendHeaders'); }
+
+    // --- Connection ---
+    function doConnect() {
+        const url = document.getElementById('wsUrl').value.trim();
+        const transport = document.getElementById('transport').value;
+        if (!url) return;
+
+        setStatus('connecting');
+        log('sys', `Connecting to ${url} via ${transport}…`);
+
+        try {
+            const socket = transport === 'sockjs' ? new SockJS(url) : new WebSocket(url);
+            client = Stomp.over(socket);
+            client.debug = msg => log('sys', msg);
+
+            const headers = getHeaders('connectHeaders');
+            client.connect(headers,
+                frame => {
+                    setStatus('connected');
+                    log('sys', 'CONNECTED — ' + (frame?.toString() || 'OK'));
+                    document.getElementById('btnConnect').disabled = true;
+                    document.getElementById('btnDisconnect').disabled = false;
+                },
+                err => {
+                    setStatus('disconnected');
+                    log('err', 'Connection error: ' + (err?.toString() || 'unknown'));
+                    cleanup();
+                }
+            );
+
+            // SockJS / WS close handler
+            socket.onclose = () => {
+                if (document.getElementById('statusPill').classList.contains('connected')) {
+                    setStatus('disconnected');
+                    log('sys', 'Connection closed by server');
+                    cleanup();
+                }
+            };
+        } catch (e) {
+            setStatus('disconnected');
+            log('err', 'Failed to create socket: ' + e.message);
+        }
+    }
+
+    function doDisconnect() {
+        if (client) {
+            try { client.disconnect(() => log('sys', 'Disconnected')); } catch (_) {}
+        }
+        setStatus('disconnected');
+        cleanup();
+    }
+
+    function cleanup() {
+        client = null;
+        subs = {};
+        stats.subs = 0;
+        document.getElementById('subList').innerHTML = '';
+        document.getElementById('btnConnect').disabled = false;
+        document.getElementById('btnDisconnect').disabled = true;
+        updateStats();
+    }
+
+    // --- Subscribe ---
+    function doSubscribe() {
+        if (!client || !client.connected) return log('err', 'Not connected');
+        const dest = document.getElementById('subDest').value.trim();
+        if (!dest) return;
+        if (subs[dest]) return log('err', `Already subscribed to ${dest}`);
+
+        const id = 'sub-' + subIdCounter++;
+        const sub = client.subscribe(dest, msg => {
+            stats.rx++;
+            log('rx', msg.body || '(empty)', dest);
+        }, { id });
+
+        subs[dest] = sub;
+        stats.subs++;
+        log('sub', `Subscribed to ${dest} (id: ${id})`);
+        updateStats();
+
+        const li = document.createElement('li');
+        li.className = 'sub-item';
+        li.id = 'sub-item-' + dest.replace(/[^a-zA-Z0-9]/g, '_');
+        li.innerHTML = `<span>${escHtml(dest)}</span><button class="unsub" title="Unsubscribe">×</button>`;
+        li.querySelector('.unsub').onclick = () => doUnsubscribe(dest);
+        document.getElementById('subList').appendChild(li);
+    }
+
+    function doUnsubscribe(dest) {
+        if (subs[dest]) {
+            subs[dest].unsubscribe();
+            delete subs[dest];
+            stats.subs--;
+            log('sub', `Unsubscribed from ${dest}`);
+            updateStats();
+            const el = document.getElementById('sub-item-' + dest.replace(/[^a-zA-Z0-9]/g, '_'));
+            if (el) el.remove();
+        }
+    }
+
+    // --- Publish ---
+    function doSend() {
+        if (!client || !client.connected) return log('err', 'Not connected');
+        const dest = document.getElementById('pubDest').value.trim();
+        const body = document.getElementById('pubBody').value;
+        const ct = document.getElementById('pubContentType').value;
+        const headers = { ...getHeaders('sendHeaders'), 'content-type': ct };
+        if (!dest) return;
+
+        try {
+            client.send(dest, headers, body);
+            stats.tx++;
+            log('tx', body || '(empty)', dest);
+        } catch (e) {
+            log('err', 'Send failed: ' + e.message);
+        }
+    }
+
+    function doSendRepeat() {
+        const n = parseInt(document.getElementById('repeatN').value) || 1;
+        const ms = parseInt(document.getElementById('repeatMs').value) || 0;
+        let i = 0;
+        const go = () => { if (i++ < n) { doSend(); if (i < n) setTimeout(go, ms); } };
+        go();
+    }
+
+    // --- Log Filtering ---
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelector('.tab.active').classList.remove('active');
+            tab.classList.add('active');
+            activeFilter = tab.dataset.filter;
+            applyAllFilters();
+        });
+    });
+
+    document.getElementById('logFilter').addEventListener('input', () => applyAllFilters());
+
+    function applyAllFilters() {
+        const text = document.getElementById('logFilter').value.toLowerCase();
+        document.querySelectorAll('.log-entry').forEach(el => applyFilters(el, text));
+    }
+
+    function applyFilters(el, text) {
+        text = text ?? document.getElementById('logFilter').value.toLowerCase();
+        const typeMatch = activeFilter === 'all' || el.dataset.type === activeFilter;
+        const textMatch = !text || el.textContent.toLowerCase().includes(text);
+        el.classList.toggle('hidden', !(typeMatch && textMatch));
+    }
+
+    function clearLog() {
+        document.getElementById('logArea').innerHTML = '<div class="empty-state">Log cleared</div>';
+        logEntries = [];
+    }
+
+    function exportLog() {
+        const text = logEntries.map(e => `[${e.time}] [${e.type.toUpperCase()}] ${e.body}${e.dest ? ' → ' + e.dest : ''}`).join('\n');
+        const blob = new Blob([text], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `stomp-log-${Date.now()}.txt`;
+        a.click();
+    }
+</script>
+</body>
+</html>

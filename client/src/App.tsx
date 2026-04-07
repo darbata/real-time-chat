@@ -1,27 +1,41 @@
 import {useEffect, useRef, useState} from "react";
-import {Client} from "@stomp/stompjs";
+import {Client, type Frame} from "@stomp/stompjs";
+import type {ULID} from "ulid";
 
-const token = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJpZCI6IjEyMzQ1NjciLCJpYXQiOjE3NzU1NzQ1MTYsImV4cCI6MTc3NTU3ODExNn0.HBMCF2z8AW_H8rKB3SNZOvaQX4xaoei2diu0E2r3xsytRWLmjIvNfdNjTvDf65xlqlKcpv1yLHbZzOqKHHDM-osbwuJzHMJudhkv9DyFtq5QrBsqKqpWyRz50fOk3LsC-kU7qrfYFYqA5H9pa18qj8xzmr0VgY6lYdeF-JkhwM2TyZmrhbTJ4-yFZ58xKzaNSlZ-CWhDStkAhivhRxSeHna1Q3ZhOA8BvF-4gGIlBX9aGJFBvPD1MDERc1l3XBeadF8CMZxhkf_WGbp2sShFExM_FFp85XV_j98kTiX9FEmh8zOz9LE5aqC9j07TpELBscyKHhKjLyvYpp7jYiyGBg"
+const token = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJpZCI6IjEyMzQ1NjciLCJpYXQiOjE3NzU1Nzg3MDMsImV4cCI6MTc3NTU4MjMwM30.iiMoWsm44KgzgQF0L3sh6JBH1Nni9HoywKku4pGhdXcRKlOLsHY2FJKfLiIHd1JcSHk3uL7uKJ1r9nYU3Z1ubAEdKwsx8NQCKU-6tvzylcQbjlv3nq9huefsZK9-xzuL8_nQ0T4pdbsvEe4--kR9MH2qeeAgRTXVsQ6pQYvLvoWGE3vE_zIuiNSAgsvl_pDBvbaCotMBUvtNiIU-J-nIzd81rDUlXKk8H1OhTlhqksOjuCdzGv4cte4oWGp5OmwyW4TKVBwizcQm0TPh9bIbGq3dtUVBOkhBsoSkwHts5S5W4yD2L5VSZThSNbOd3UEoHVuRMethez_ITF2dy698kQ"
 
 type Message = {
+    content: string,
+    createdAt: string,
+    from: number,
+    id: ULID,
+    to: number,
+}
+
+type MessageForm = {
     conversationId: number,
     to: number,
     content: string
 }
 
-const callback = (message: any) => {
-    console.log("received: ", message.body)
-}
 
 function App() {
 
     const clientRef = useRef<Client | null>(null);
     const [connected, setConnected] = useState(false)
-    const [message, setMessage] = useState<Message>({
+    const [messageForm, setMessageForm] = useState<MessageForm>({
         conversationId: 0,
         to: 1234567,
         content: ""
     });
+
+    const [messages, setMessages] = useState<Message[]>([])
+
+    const callback = (frame: Frame) => {
+        const message: Message = JSON.parse(frame.body) as Message;
+        console.log(message)
+        setMessages(prev => [...prev, message])
+    }
 
     useEffect(() => {
         const client = new Client({
@@ -44,17 +58,25 @@ function App() {
         if (!clientRef.current?.connected) return;
         clientRef.current.publish({
             destination: "/app/chat",
-            body: JSON.stringify(message)
+            body: JSON.stringify(messageForm)
         });
     }
 
     return (
-        <form onSubmit={(e) => {e.preventDefault(); handleSend()}}>
-            <input type="number" value={message.conversationId} onChange={(e) => {setMessage({...message, conversationId: Number(e.target.value)})}}/>
-            <input type="number" value={message.to} onChange={(e) => {setMessage({...message,  to: Number(e.target.value)})}}/>
-            <input type="text" value={message.content} onChange={(e) => {setMessage({...message, content: e.target.value})}}/>
-            <button type="submit" disabled={!connected}>Submit</button>
-        </form>
+        <div>
+            <form onSubmit={(e) => {e.preventDefault(); handleSend()}}>
+                <input type="number" value={messageForm.conversationId} onChange={(e) => {setMessageForm({...messageForm, conversationId: Number(e.target.value)})}}/>
+                <input type="number" value={messageForm.to} onChange={(e) => {setMessageForm({...messageForm,  to: Number(e.target.value)})}}/>
+                <input type="text" value={messageForm.content} onChange={(e) => {setMessageForm({...messageForm, content: e.target.value})}}/>
+                <button type="submit" disabled={!connected}>Submit</button>
+            </form>
+            <ul>
+                {messages.map((message) => (
+                    <li key={message.id}>{message.content}</li>
+                ))}
+            </ul>
+        </div>
+
     );
 }
 

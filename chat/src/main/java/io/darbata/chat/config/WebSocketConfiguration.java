@@ -1,19 +1,41 @@
 package io.darbata.chat.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.messaging.context.SecurityContextChannelInterceptor;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.messaging.context.AuthenticationPrincipalArgumentResolver;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import java.security.Principal;
+import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 
+    private final JwtDecoder jwtDecoder;
+
+    public WebSocketConfiguration(JwtDecoder jwtDecoder) {
+        this.jwtDecoder = jwtDecoder;
+    }
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // websocket clients must connect to this endpoint
-        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:3000").withSockJS();
+        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:5173");
     }
 
     @Override
@@ -21,12 +43,44 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         // @MessageMapping method prefix
         registry.setApplicationDestinationPrefixes("/app");
 
-        // enable external broker e.g. RabbitMQ
-        // registry.enableStompBrokerRelay("/topic", "/queue");
-
-        // TODO: remove this simple broker
+        // TODO: replcace simple broker wither external broker e.g. RabbitMQ
         // any messages with these destination headers will be sent to the broker
         registry.enableSimpleBroker("/topic", "/queue");
+
+        // enable external broker e.g. RabbitMQ
+        // registry.enableStompBrokerRelay("/topic", "/queue");
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(
+            new ChannelInterceptor() {
+                public Message<?> preSend(Message<?> message, MessageChannel channel) {
+                    StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+                    if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                        String token = accessor.getFirstNativeHeader("Authorization");
+                        if (token != null && token.startsWith("Bearer ")) {
+                            String jwtToken = token.substring(7); // remove Bearer
+                            Principal user = validateTokenAndCreatePrincipal(jwtToken);
+                            accessor.setUser(user);
+                        }
+                    }
+                    return message;
+                }
+            },
+
+            new SecurityContextChannelInterceptor()
+        );
+    }
+
+    private Principal validateTokenAndCreatePrincipal(String token) {
+        Jwt jwt = jwtDecoder.decode(token);
+        return new JwtAuthenticationToken(jwt);
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new AuthenticationPrincipalArgumentResolver());
     }
 
 }

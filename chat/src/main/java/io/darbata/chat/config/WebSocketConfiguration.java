@@ -69,11 +69,13 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
                     if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                         String token = accessor.getFirstNativeHeader("Authorization");
 
-                        if (token != null && token.startsWith("Bearer ")) {
-                            String jwtToken = token.substring(7); // remove Bearer
-                            Principal user = validateTokenAndCreatePrincipal(jwtToken);
-                            accessor.setUser(user);
+                        if (token == null || !token.startsWith("Bearer ")) {
+                            throw new RuntimeException("No authentication token");
                         }
+
+                        String jwtToken = token.substring(7); // remove Bearer
+                        Principal user = validateTokenAndCreatePrincipal(jwtToken);
+                        accessor.setUser(user);
 
                     }
                     return message;

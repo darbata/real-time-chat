@@ -48,7 +48,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
         // TODO: replace simple broker wither external broker e.g. RabbitMQ
         // any messages with these destination headers will be sent to the broker
-        registry.enableSimpleBroker("/topic", "/queue");
+        registry.enableSimpleBroker("/topic", "/queue", "/user");
 
         // uncomment to enable external broker e.g. RabbitMQ
         // registry.enableStompBrokerRelay("/topic", "/queue");

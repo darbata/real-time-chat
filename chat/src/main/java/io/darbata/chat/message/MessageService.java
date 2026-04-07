@@ -20,6 +20,6 @@ class MessageService {
         Message saved = messageRepository.save(conversationId, message);
 
         // send message with id to user-specific queue
-        messageTemplate.convertAndSendToUser(Long.toString(to), "/chats/", saved);
+        messageTemplate.convertAndSendToUser(Long.toString(to), "/chats", saved);
     }
 }

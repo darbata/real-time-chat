@@ -34,8 +34,11 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // websocket clients must connect to this endpoint
-        registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:5173");
+        registry
+            // websocket clients must connect to this endpoint
+            .addEndpoint("/ws")
+            // at HTTP level (before UPGRADE) this origin is allowed
+            .setAllowedOrigins("http://localhost:5173");
     }
 
     @Override
@@ -43,32 +46,41 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         // @MessageMapping method prefix
         registry.setApplicationDestinationPrefixes("/app");
 
-        // TODO: replcace simple broker wither external broker e.g. RabbitMQ
+        // TODO: replace simple broker wither external broker e.g. RabbitMQ
         // any messages with these destination headers will be sent to the broker
         registry.enableSimpleBroker("/topic", "/queue");
 
-        // enable external broker e.g. RabbitMQ
+        // uncomment to enable external broker e.g. RabbitMQ
         // registry.enableStompBrokerRelay("/topic", "/queue");
     }
 
     @Override
+    // handles web socket authentication
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(
+            // handles CONNECT frames
+            // so all subsequent messages on this socket shares the same context
             new ChannelInterceptor() {
+
                 public Message<?> preSend(Message<?> message, MessageChannel channel) {
+
                     StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+
                     if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                         String token = accessor.getFirstNativeHeader("Authorization");
+
                         if (token != null && token.startsWith("Bearer ")) {
                             String jwtToken = token.substring(7); // remove Bearer
                             Principal user = validateTokenAndCreatePrincipal(jwtToken);
                             accessor.setUser(user);
                         }
+
                     }
                     return message;
                 }
-            },
 
+            },
+            // populates SecurityContext with the Principal set by ChannelInterceptor
             new SecurityContextChannelInterceptor()
         );
     }
@@ -80,6 +92,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        // allows Message handlers in Controllers to extract @AuthenticationPrincipal
         resolvers.add(new AuthenticationPrincipalArgumentResolver());
     }
 

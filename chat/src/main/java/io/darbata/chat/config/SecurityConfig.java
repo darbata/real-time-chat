@@ -22,12 +22,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests((authorize) -> authorize
+                    // websockets don't carry JWT
+                    // let it be intercepted by ws connections be intercepted
                     .requestMatchers("/ws/**").permitAll()
-                    .anyRequest().authenticated()
+                    .anyRequest().authenticated() // everything else must be authenticated
             )
             .oauth2ResourceServer((oauth2) -> oauth2
+                    // accept a Bearer token in the Authorization header
                     .jwt((jwt) -> jwt
-                            .decoder(jwtDecoder())
+                            .decoder(jwtDecoder()) // then verify with RSA public key
                     )
             );
 
@@ -36,7 +39,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        // use public key in resources
+        // use public key
         return NimbusJwtDecoder.withPublicKey(rsaPublicKey).build();
     }
 

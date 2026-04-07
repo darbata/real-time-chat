@@ -19,7 +19,7 @@ class MessageService {
         // save message to KV store
         Message saved = messageRepository.save(conversationId, message);
 
-        // send message with id to queue
+        // send message with id to user-specific queue
         messageTemplate.convertAndSendToUser(Long.toString(to), "/chats/", saved);
     }
 }

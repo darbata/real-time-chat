@@ -26,6 +26,7 @@ class MessageController {
                 chat.conversationId(),
                 id, // from this user
                 chat.to(),
-                chat.content());
+                chat.content()
+        );
     }
 }

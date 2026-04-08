@@ -23,7 +23,6 @@ class MessageController {
         long id = Long.parseLong(jwt.getClaimAsString("id"));
         logger.info("User {} sending {}", id, chat);
         messageService.sendMessage(
-                chat.conversationId(),
                 id, // from this user
                 chat.to(),
                 chat.content()

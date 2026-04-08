@@ -8,21 +8,21 @@ import java.util.*;
 @Repository
 public class LocalKVStore implements KVStore {
 
-    private final Map<Long, List<Message>> map;
+    private final Map<String, List<Message>> map;
 
     public LocalKVStore() {
         this.map = new HashMap<>();
     }
 
     @Override
-    public void put(long key, Message message) {
+    public void put(String key, Message value) {
         List<Message> messages = map.getOrDefault(key, new ArrayList<>());
-        messages.add(message);
+        messages.add(value);
         map.put(key, messages);
     }
 
     @Override
-    public List<Message> get(long key) {
+    public List<Message> get(String key) {
         Optional<List<Message>> messages = Optional.ofNullable(map.get(key));
         return messages.orElse(Collections.emptyList());
     }

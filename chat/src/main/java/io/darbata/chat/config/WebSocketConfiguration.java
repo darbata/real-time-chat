@@ -1,5 +1,7 @@
 package io.darbata.chat.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -27,6 +29,7 @@ import java.util.List;
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 
     private final JwtDecoder jwtDecoder;
+    private final Logger logger = LoggerFactory.getLogger(WebSocketConfiguration.class);
 
     public WebSocketConfiguration(JwtDecoder jwtDecoder) {
         this.jwtDecoder = jwtDecoder;
@@ -66,6 +69,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
                     StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
+                    logger.info("invoking preSend()");
+
                     if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                         String token = accessor.getFirstNativeHeader("Authorization");
 
@@ -88,8 +93,12 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     }
 
     private Principal validateTokenAndCreatePrincipal(String token) {
-        Jwt jwt = jwtDecoder.decode(token);
-        return new JwtAuthenticationToken(jwt);
+        try {
+            Jwt jwt = jwtDecoder.decode(token);
+            return new JwtAuthenticationToken(jwt);
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid or expired token: " + e.getMessage());
+        }
     }
 
     @Override

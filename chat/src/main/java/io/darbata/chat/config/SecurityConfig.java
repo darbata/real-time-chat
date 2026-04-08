@@ -39,7 +39,6 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        // use public key
         return NimbusJwtDecoder.withPublicKey(rsaPublicKey).build();
     }
 

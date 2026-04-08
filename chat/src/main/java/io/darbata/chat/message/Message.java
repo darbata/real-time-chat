@@ -4,8 +4,8 @@ import java.util.Date;
 import com.github.f4b6a3.ulid.Ulid;
 
 public class Message {
-
     // Ulid uses timestamps, so monotonically increasing
+    String conversationId;
     private Ulid id;
     private long from;
     private long to;
@@ -14,7 +14,7 @@ public class Message {
 
     private Message() {}
 
-    public static Message create(long from, long to, String content) {
+    public static Message draft(long from, long to, String content) {
         Message message = new Message();
         message.setFrom(from);
         message.setTo(to);
@@ -22,14 +22,23 @@ public class Message {
         return message;
     }
 
-    public static Message load(Ulid id, long from, long to, String content, Date createdAt) {
+    public static Message create(String conversationId, Ulid id, long from, long to, String content, Date createdAt) {
         Message message = new Message();
+        message.setConversationId(conversationId);
         message.setId(id);
         message.setFrom(from);
         message.setTo(to);
         message.setContent(content);
         message.setCreatedAt(createdAt);
         return message;
+    }
+
+    public String getConversationId() {
+        return conversationId;
+    }
+
+    private void setConversationId(String conversationId) {
+        this.conversationId = conversationId;
     }
 
     public Ulid getId() {
@@ -67,6 +76,7 @@ public class Message {
     public Date getCreatedAt() {
         return createdAt;
     }
+
 
     private void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;

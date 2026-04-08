@@ -5,6 +5,6 @@ import io.darbata.chat.message.Message;
 import java.util.List;
 
 public interface KVStore {
-    public void put(long key, Message value);
-    public List<Message> get(long key);
+    public void put(String key, Message value);
+    public List<Message> get(String key);
 }

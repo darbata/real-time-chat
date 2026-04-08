@@ -13,11 +13,11 @@ class MessageService {
         this.messageTemplate = messageTemplate;
     }
 
-    public void sendMessage(long conversationId, long from, long to, String content) {
-        Message message = Message.create(from, to, content);
+    public void sendMessage(long from, long to, String content) {
+        Message message = Message.draft(from, to, content);
 
         // save message to KV store
-        Message saved = messageRepository.save(conversationId, message);
+        Message saved = messageRepository.save(message);
 
         // send message with id to user-specific queue
         messageTemplate.convertAndSendToUser(Long.toString(to), "/chats", saved);

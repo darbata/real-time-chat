@@ -26,12 +26,12 @@ import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtDecoder jwtDecoder;
-    private final Logger logger = LoggerFactory.getLogger(WebSocketConfiguration.class);
+    private final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
-    public WebSocketConfiguration(JwtDecoder jwtDecoder) {
+    public WebSocketConfig(JwtDecoder jwtDecoder) {
         this.jwtDecoder = jwtDecoder;
     }
 

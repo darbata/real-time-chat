@@ -17,8 +17,8 @@ class ConversationRepository {
 
     List<Long> findRecentConversationIds(long userId, int limit, int offset) {
         String query = """
-            SELECT conversation_id FROM user_conversations 
-            WHERE user_id = :userId 
+            SELECT conversation_id FROM user_conversations
+            WHERE user_id = :userId
             ORDER BY last_message_at DESC
             LIMIT :limit OFFSET :offset;
         """;
@@ -33,7 +33,7 @@ class ConversationRepository {
 
     void updateLastMessageAt(long conversationId) {
         String query = """
-            UPDATE user_conversations 
+            UPDATE user_conversations
             SET last_message_at = NOW() 
             WHERE conversation_id = :conversationId;
         """;
@@ -46,7 +46,7 @@ class ConversationRepository {
     @Transactional
     void createUserConversation(List<Long> userIds) {
         String createConversationQuery = """
-            INSERT INTO conversations (id) 
+            INSERT INTO conversations (id)
             VALUES (DEFAULT) RETURNING id;
         """;
 

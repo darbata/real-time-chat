@@ -1,6 +1,6 @@
 package io.darbata.conversations.conversation;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record MessageDTO(
@@ -8,5 +8,5 @@ public record MessageDTO(
         long from,
         long to,
         String content,
-        Date createdAt
+        LocalDate createdAt
 ) { }

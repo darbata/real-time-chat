@@ -15,24 +15,12 @@ public class ConversationService {
         this.messageRepository = messageRepository;
     }
 
-    /*
-        conversations = [  <-- fetch recent 20
-            {
-                conversationId: long
-                messages: Message[]
-            },
-            {
-                conversationId: long
-                messages: Message[]
-            }
-        ]
-    */
-    // TODO: implement pagination
-    public List<Long> fetchConversations(long userId) {
-        // fetch recent conversations from relational database
-        // for each conversation fetch messages from key value store
-        // create single object
-        return null;
+    public InboxDTO fetchUserInbox(long userId, int conversationQueryLimit, int offset, int messageQueryLimit) {
+        int queryLimit = Math.min(10, conversationQueryLimit);
+        List<Long> conversationIds = conversationRepository.findRecentConversationIds(userId, queryLimit, offset);
+        queryLimit = Math.min(50, messageQueryLimit);
+        List<ConversationDTO> conversationsMessages = messageRepository.findConversationsMessages(conversationIds, queryLimit);
+        return new InboxDTO(conversationsMessages);
     }
 
 }

@@ -49,7 +49,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // @MessageMapping method prefix
         registry.setApplicationDestinationPrefixes("/app");
 
-        // TODO: replace simple broker wither external broker e.g. RabbitMQ
+        // TODO: replace simple broker with external broker e.g. RabbitMQ
         // any messages with these destination headers will be sent to the broker
         registry.enableSimpleBroker("/topic", "/queue", "/user");
 
@@ -93,9 +93,20 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     private Principal validateTokenAndCreatePrincipal(String token) {
+
+        /*
+        The Principal will be used to subscribe clients to their specific queue on websocket connection
+        Here we extract their id from the Principal, allowing them to subscribe to `/user/{id}/queue/chat` for example
+        */
+
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            return new JwtAuthenticationToken(jwt);
+            return new JwtAuthenticationToken(jwt) {
+                @Override
+                public String getName() {
+                    return jwt.getClaimAsString("id");
+                }
+            };
         } catch (Exception e) {
             throw new RuntimeException("Invalid or expired token: " + e.getMessage());
         }

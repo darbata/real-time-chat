@@ -106,12 +106,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            return new JwtAuthenticationToken(jwt) {
-                @Override
-                public String getName() {
-                    return jwt.getClaimAsString("id");
-                }
-            };
+            return new JwtAuthenticationToken(jwt);
         } catch (Exception e) {
             throw new RuntimeException("Invalid or expired token: " + e.getMessage());
         }

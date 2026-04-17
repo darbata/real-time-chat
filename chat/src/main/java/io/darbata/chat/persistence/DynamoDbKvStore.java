@@ -52,27 +52,4 @@ public class DynamoDbKvStore implements KVStore {
 
     }
 
-    @Override
-    public List<Message> get(String partitionKey) {
-
-        Map<String, AttributeValue> keys = Map.of(
-                "conversationId", AttributeValue.builder().s(partitionKey).build());
-
-        Map<String, KeysAndAttributes> requestItems = new HashMap<>();
-        requestItems.put(tableName, KeysAndAttributes.builder().keys(List.of(keys)).build());
-
-        BatchGetItemRequest request = BatchGetItemRequest.builder()
-                .requestItems(requestItems)
-                .build();
-
-        List<Message> messages = new ArrayList<>();
-
-        client.batchGetItemPaginator(request).stream()
-                .flatMap(response -> response.responses().getOrDefault(tableName, Collections.emptyList()).stream())
-                .forEach(item -> {
-                    messages.add((Message) item);
-                });
-
-        return messages;
-    }
 }

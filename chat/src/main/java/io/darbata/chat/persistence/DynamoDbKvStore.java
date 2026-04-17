@@ -16,7 +16,7 @@ import java.util.*;
 @Repository
 public class DynamoDbKvStore implements KVStore {
 
-    @Value("${dynamodb.table-name}")
+    @Value("${aws.sdk.dynamo-db.table}")
     private String tableName;
 
     private final DynamoDbClient client;

@@ -1,0 +1,54 @@
+services:
+
+  conversations:
+    build: ./conversations/.
+    ports:
+      - 8080:8080
+    environment:
+      - DYNAMODB_HOST=dynamodb
+      - DYNAMODB_PORT=8000
+      - DYNAMODB_TABLE=Conversations
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=example # matches postgres
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  chat:
+    build: ./chat/.
+    ports:
+      - 8081:8080
+    environment:
+      - DYNAMODB_HOST=dynamodb
+      - DYNAMODB_PORT=8000
+      - DYNAMODB_TABLE=Conversations
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'if [ "$(curl -s -o /dev/null -I -w ''%{http_code}'' http://localhost:8000)" == "400" ]; then exit 0; else exit 1; fi',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:18
+    environment:
+      - POSTGRES_PASSWORD=example 
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres -d postgres'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3

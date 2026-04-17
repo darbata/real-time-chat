@@ -13,10 +13,10 @@ import java.net.URI;
 @Configuration
 public class DynamoDbConfig {
 
-    @Value("${dynamodb.table-name}")
+    @Value("${aws.sdk.dynamo-db.table}")
     private String tableName;
 
-    @Value("${dynamodb.url}")
+    @Value("${aws.sdk.dynamo-db.url}")
     private String dbUrl;
 
     @Bean

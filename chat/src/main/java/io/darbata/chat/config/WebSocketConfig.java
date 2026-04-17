@@ -2,6 +2,7 @@ package io.darbata.chat.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -31,6 +32,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtDecoder jwtDecoder;
     private final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
+    @Value("${app.rabbitmq.stomp.host}")
+    private String rabbitMqHost;
+
+    @Value("${app.rabbitmq.stomp.port}")
+    private int rabbitMqPort;
+
     public WebSocketConfig(JwtDecoder jwtDecoder) {
         this.jwtDecoder = jwtDecoder;
     }
@@ -49,12 +56,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // @MessageMapping method prefix
         registry.setApplicationDestinationPrefixes("/app");
 
-        // TODO: replace simple broker with external broker e.g. RabbitMQ
         // any messages with these destination headers will be sent to the broker
-        registry.enableSimpleBroker("/topic", "/queue", "/user");
-
-        // uncomment to enable external broker e.g. RabbitMQ
-        // registry.enableStompBrokerRelay("/topic", "/queue");
+         registry.enableStompBrokerRelay("/queue")
+                 .setRelayHost(rabbitMqHost)
+                 .setRelayPort(rabbitMqPort);
     }
 
     @Override

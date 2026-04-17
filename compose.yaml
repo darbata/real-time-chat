@@ -28,7 +28,7 @@ services:
       - DYNAMODB_PORT=8000
       - DYNAMODB_TABLE=Conversations
     depends_on:
-      dynamodb:
+      broker:
         condition: service_healthy
 
   dynamodb:
@@ -52,3 +52,14 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+
+  broker:
+    image: rabbitmq:4.3-rc-management # image has mangement ui
+    ports:
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 3s
+      retries: 5

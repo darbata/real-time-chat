@@ -30,6 +30,18 @@ services:
       broker:
         condition: service_healthy
 
+  dispatcher:
+    build: ./dispatcher/.
+    ports:
+      - 8082:8080
+    environment:
+      - RABBITMQ_HOST=broker
+      - RABBITMQ_PORT=5672
+    depends_on:
+      broker:
+        condition: service_healthy
+
+
   dynamodb:
     image: amazon/dynamodb-local:latest
     healthcheck:

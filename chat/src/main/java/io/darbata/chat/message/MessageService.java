@@ -11,7 +11,7 @@ class MessageService {
         this.messageTemplate = messageTemplate;
     }
 
-    public void sendMessage(long conversationId, long from, String content) {
+    public void sendMessage(long conversationId, String from, String content) {
         MessageDTO message = new MessageDTO(conversationId, from, content);
 
         // send message with id to user-specific queue

@@ -20,8 +20,9 @@ class MessageController {
 
     @MessageMapping("/chat")
     void handle(@AuthenticationPrincipal Jwt jwt, @Payload SendMessageDTO chat) {
-        long userId = Long.parseLong(jwt.getClaimAsString("id"));
+        String userId = jwt.getClaimAsString("sub");
         logger.info("User {} sending {}", userId, chat);
         messageService.sendMessage(chat.conversationId(), userId, chat.content());
     }
+
 }

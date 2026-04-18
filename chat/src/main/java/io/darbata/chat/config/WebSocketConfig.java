@@ -84,8 +84,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         }
 
                         String jwtToken = token.substring(7); // remove Bearer
+
                         Principal user = validateTokenAndCreatePrincipal(jwtToken);
+
+                        logger.info("Connecting to user: {}", user.getName());
+
+                        // the accessor is responsible for auto subscribing connections to their user-specific queue
                         accessor.setUser(user);
+
+                        // by default accessor will create user sessions based on Principal.getName()
+                        // we override this function in `validateTokenAndCreatePrincipal(String token)`
+                        // to use the 'sub' instead
+
 
                     }
                     return message;
@@ -99,17 +109,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private Principal validateTokenAndCreatePrincipal(String token) {
 
-        /*
-        The Principal will be used to subscribe clients to their specific queue on websocket connection
-        Here we extract their id from the Principal, allowing them to subscribe to `/user/{id}/queue/chat` for example
-        */
-
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            return new JwtAuthenticationToken(jwt);
+            return new JwtAuthenticationToken(jwt) {
+                @Override
+                public String getName() {
+                    return jwt.getClaimAsString("sub");
+                }
+            };
         } catch (Exception e) {
             throw new RuntimeException("Invalid or expired token: " + e.getMessage());
         }
+
     }
 
     @Override

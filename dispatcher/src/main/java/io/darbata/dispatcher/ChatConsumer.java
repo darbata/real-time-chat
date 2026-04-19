@@ -16,8 +16,8 @@ public class ChatConsumer {
     }
 
     @RabbitListener(queues="chats")
-    public void onMessage(IncomingMessage message) {
+    public void onMessage(IncomingChat message) {
         log.info("Receiving message: {}", message);
-        chatService.sendMessage(message);
+        chatService.consumeIncomingMessage(message);
     }
 }

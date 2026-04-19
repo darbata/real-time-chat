@@ -3,9 +3,9 @@ package io.darbata.dispatcher;
 import java.time.Instant;
 import java.util.List;
 
-public record DispatchMessageEvent (
+public record DispatchChatEvent(
     long conversationId,
-    String messageId,
+    String chatId,
     String senderId,
     String content,
     List<String> recipients,
@@ -15,7 +15,7 @@ public record DispatchMessageEvent (
     public String toString() {
         return "DispatchMessageEvent{" +
                 "conversationId=" + conversationId +
-                ", messageId='" + messageId + '\'' +
+                ", id='" + chatId + '\'' +
                 ", senderId='" + senderId + '\'' +
                 ", content='" + content + '\'' +
                 ", recipients=" + recipients +

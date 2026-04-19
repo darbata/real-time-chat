@@ -27,4 +27,9 @@ class AmqpConfig {
     public Queue dispatchQueue() {
         return QueueBuilder.durable("dispatch").build();
     }
+
+    @Bean
+    public Queue chatQueue() {
+        return QueueBuilder.durable("chat").build();
+    }
 }

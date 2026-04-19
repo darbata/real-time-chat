@@ -12,7 +12,7 @@ class MessageService {
     }
 
     public void sendMessage(long conversationId, String from, String content) {
-        MessageDTO message = new MessageDTO(conversationId, from, content);
+        IncomingMessage message = new IncomingMessage(conversationId, from, content);
 
         // send message with id to user-specific queue
         // send `dto` to /user/{to}/queue/chats

@@ -1,7 +1,11 @@
 package io.darbata.chat.message;
 
+import java.util.Date;
+
 record MessageDTO (
         long conversationId,
-        String userId, // the sender of this message
-        String content
+        String messageId,
+        String userId,
+        String content,
+        Date sentAt
 ) { }

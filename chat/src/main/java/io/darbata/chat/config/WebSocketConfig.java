@@ -2,7 +2,13 @@ package io.darbata.chat.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -55,11 +61,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         // @MessageMapping method prefix
         registry.setApplicationDestinationPrefixes("/app");
+        registry.setUserDestinationPrefix("/user");
 
         // any messages with these destination headers will be sent to the broker
          registry.enableStompBrokerRelay("/queue")
                  .setRelayHost(rabbitMqHost)
-                 .setRelayPort(rabbitMqPort);
+                 .setRelayPort(rabbitMqPort)
+
+                 // share ws connections across instances
+                 .setUserRegistryBroadcast("/topic/registry.broadcast")
+
+                 // if this instance doesn't have ws connection yet, pass it on
+                 .setUserDestinationBroadcast("/topic/unresolved.user.broadcast");
     }
 
     @Override
@@ -127,6 +140,23 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         // allows Message handlers in Controllers to extract @AuthenticationPrincipal
         resolvers.add(new AuthenticationPrincipalArgumentResolver());
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        final var rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setMessageConverter(producerJackson2MessageConverter());
+        return rabbitTemplate;
+    }
+
+    @Bean
+    public JacksonJsonMessageConverter producerJackson2MessageConverter() {
+        return new JacksonJsonMessageConverter();
+    }
+
+    @Bean
+    public Queue dispatchQueue() {
+        return QueueBuilder.durable("dispatch").build();
     }
 
 }

@@ -1,7 +1,7 @@
 package io.darbata.dispatcher;
 
-public record MessageDTO(
+public record IncomingMessage (
     long conversationId,
-    String userId, // sub
+    String userId,
     String content
 ) { }

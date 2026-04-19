@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import {Client, type Frame} from "@stomp/stompjs";
 import type {ULID} from "ulid";
 
-const token = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJpZCI6IjEyMzQ1NjciLCJpYXQiOjE3NzU2MTg2NDksImV4cCI6MTc3NTYyMjI0OX0.BlVjoaAo0_ISe5yTHZjZxIE2l-pXaOHDwZZ5k7C6oHo6D2rga9N6fW5hK0bmpqyP0luVLDgIGtI-_NsR2luIMKOVbixJ299olUjxtsq9iCpDjHTCZop0rzhgAPvzqLclbn9oJOgFdcg6Rg8bIH74DHO_D4qcTMlSKjZgpY4jWc3-DsoKw8PdKcVEUyNbwtzTOZRd6d0W6bvnb2ch-pfisziQgZQr8zd3qOkm0IDtRDAUe9idjNDoSn8pdczCA6paTV-arhHwYVRzjPKV8HxeoYdwcqYUhuvCh-fY58KCN_i4K8gpRygyrJQnOsiix7eBiwQ8RoSGVxS76VMisOkdCQ"
+const token = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdWItMDQ5OWZhOTYtODA5Yi00OGZmLTlhZGUtNzk4MGM4ZDljNjk5IiwiaWQiOiIxMjM0NTY3IiwiaWF0IjoxNzc2NTY3NDg1LCJleHAiOjE3NzY1NzEwODV9.hawHdEIaGLhnmBb5XoQyxrMZ0A1jHzHoO1Np3w2hOxVYKdXKYTfrPNtkNpwBzJJHsV-dnMqrkngF9qEs_jJDQh3UbpXq_TD5c-TZOFZ0g00Fdn9-eDMs1kNFEze85JVa7nxacYGD3t6kus7CNEu0ZsFEwFPV9VZ6zWf52NRPhfu8sN10QX3P1Zx_PXs89ARWRhIzH8Q8vtSeb-mHFeq9KQ1SI7rQmp7naI5Go354sw3_R6CD0R93e12r5gvE9gnB2KrjlFXmac1Sh1GdwESzmn5EnnfVmnamQDry-qAkXU8rII8_45TUulCfwxzvZ0AxFTpusGp39YB8MfDfgUNTog"
 
 type Message = {
     content: string,
@@ -16,6 +16,13 @@ type MessageForm = {
     conversationId: number,
     to: number,
     content: string
+}
+
+const fetchInbox = async () => {
+    const response = await fetch("http://localhost:8080/api/conversations")
+    const data = await response.json()
+    console.log(data)
+    return data
 }
 
 
@@ -38,19 +45,24 @@ function App() {
     }
 
     useEffect(() => {
+
         const client = new Client({
-            brokerURL: "ws://localhost:8080/ws",
+            brokerURL: "ws://localhost:8081/ws",
             connectHeaders: {
                 Authorization: token
             },
             onConnect: () => {
                 setConnected(true);
-                client.subscribe("/user/1234567/chats", callback);
+                const connection = client.subscribe("/user/queue/chats", callback);
+                console.log(connection)
             },
             onDisconnect: () => setConnected(false)
         })
         client.activate();
         clientRef.current = client;
+
+
+
         return () => { client.deactivate(); };
     }, [])
 
@@ -70,6 +82,9 @@ function App() {
                 <input type="text" value={messageForm.content} onChange={(e) => {setMessageForm({...messageForm, content: e.target.value})}}/>
                 <button type="submit" disabled={!connected}>Submit</button>
             </form>
+
+            <button onClick={fetchInbox}>Fetch Inbox</button>
+
             <ul>
                 {messages.map((message) => (
                     <li key={message.id}>{message.content}</li>

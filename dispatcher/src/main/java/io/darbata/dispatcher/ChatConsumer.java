@@ -8,10 +8,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class ChatConsumer {
 
-    private Logger logger = LoggerFactory.getLogger(ChatConsumer.class);
+    private final Logger log = LoggerFactory.getLogger(ChatConsumer.class);
+    private final ChatService chatService;
+
+    ChatConsumer(ChatService chatService) {
+        this.chatService = chatService;
+    }
 
     @RabbitListener(queues="chats")
-    public void onMessage(String message) {
-        logger.info("received chat message: {}", message);
+    public void onMessage(IncomingMessage message) {
+        log.info("Receiving message: {}", message);
+        chatService.sendMessage(message);
     }
 }

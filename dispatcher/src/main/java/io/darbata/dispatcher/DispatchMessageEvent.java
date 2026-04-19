@@ -6,7 +6,7 @@ import java.util.List;
 public record DispatchMessageEvent (
     long conversationId,
     String messageId,
-    String userId,
+    String senderId,
     String content,
     List<String> recipients,
     Instant sentAt
@@ -16,7 +16,7 @@ public record DispatchMessageEvent (
         return "DispatchMessageEvent{" +
                 "conversationId=" + conversationId +
                 ", messageId='" + messageId + '\'' +
-                ", userId='" + userId + '\'' +
+                ", senderId='" + senderId + '\'' +
                 ", content='" + content + '\'' +
                 ", recipients=" + recipients +
                 ", sentAt=" + sentAt +

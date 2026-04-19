@@ -20,9 +20,9 @@ class MessageController {
 
     @MessageMapping("/chat")
     void handle(@AuthenticationPrincipal Jwt jwt, @Payload SendMessageDTO chat) {
-        String userId = jwt.getClaimAsString("sub");
-        logger.info("User {} sending {}", userId, chat);
-        messageService.sendMessage(chat.conversationId(), userId, chat.content());
+        String senderId = jwt.getClaimAsString("sub");
+        logger.info("User {} sending {}", senderId, chat);
+        messageService.sendMessage(chat.conversationId(), senderId, chat.content());
     }
 
 }

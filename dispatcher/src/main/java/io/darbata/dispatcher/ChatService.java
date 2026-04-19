@@ -25,7 +25,7 @@ class ChatService {
     }
 
     public void sendMessage(IncomingMessage message) {
-        String senderId = message.userId();
+        String senderId = message.senderId();
 
         List<String> recipients = conversationRepository.fetchRecipients(
                 message.conversationId(),

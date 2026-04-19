@@ -6,10 +6,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 @Component
 class DispatchMessageEventListener {
@@ -32,14 +29,14 @@ class DispatchMessageEventListener {
             MessageDTO dto = new MessageDTO(
                     event.conversationId(),
                     event.messageId(),
-                    event.userId(), // sender id
+                    event.senderId(),
                     event.content(),
                     date
             );
 
-            log.info("Sending to {}", event.userId());
+            log.info("Sending to {}", event.senderId());
             template.convertAndSendToUser(
-                    event.userId(),
+                    event.senderId(),
                     "/queue/chats",
                     dto
             );

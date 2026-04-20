@@ -17,10 +17,9 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.messaging.context.SecurityContextChannelInterceptor;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.messaging.context.AuthenticationPrincipalArgumentResolver;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -33,7 +32,6 @@ import java.util.List;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final JwtDecoder jwtDecoder;
     private final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
     @Value("${app.rabbitmq.stomp.host}")
@@ -41,10 +39,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Value("${app.rabbitmq.stomp.port}")
     private int rabbitMqPort;
-
-    public WebSocketConfig(JwtDecoder jwtDecoder) {
-        this.jwtDecoder = jwtDecoder;
-    }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -81,33 +75,25 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             // so all subsequent messages on this socket shares the same context
             new ChannelInterceptor() {
 
+                @Override
                 public Message<?> preSend(Message<?> message, MessageChannel channel) {
 
                     StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-                    logger.info("invoking preSend()");
-
                     if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                        String token = accessor.getFirstNativeHeader("Authorization");
 
-                        if (token == null || !token.startsWith("Bearer ")) {
-                            throw new RuntimeException("No authentication token");
+                        String userId = accessor.getFirstNativeHeader("X-User-Id"); // client must set this
+
+                        if (userId == null || userId.isBlank()) {
+                            throw new RuntimeException("X-User-Id header required from client");
                         }
 
-                        String jwtToken = token.substring(7); // remove Bearer
-
-                        Principal user = validateTokenAndCreatePrincipal(jwtToken);
-
-                        logger.info("Connecting to user: {}", user.getName());
-
-                        // the accessor is responsible for auto subscribing connections to their user-specific queue
-                        accessor.setUser(user);
-
-                        // by default accessor will create user sessions based on Principal.getName()
-                        // we override this function in `validateTokenAndCreatePrincipal(String token)`
-                        // to use the 'sub' instead
-
-
+                        Authentication auth = new UsernamePasswordAuthenticationToken(
+                                userId,
+                                null, // no password
+                                List.of() // no no authorities
+                        );
+                        accessor.setUser(auth);
                     }
                     return message;
                 }
@@ -116,22 +102,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             // populates SecurityContext with the Principal set by ChannelInterceptor
             new SecurityContextChannelInterceptor()
         );
-    }
-
-    private Principal validateTokenAndCreatePrincipal(String token) {
-
-        try {
-            Jwt jwt = jwtDecoder.decode(token);
-            return new JwtAuthenticationToken(jwt) {
-                @Override
-                public String getName() {
-                    return jwt.getClaimAsString("sub");
-                }
-            };
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid or expired token: " + e.getMessage());
-        }
-
     }
 
     @Override

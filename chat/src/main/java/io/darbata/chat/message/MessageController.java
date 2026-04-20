@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -19,10 +17,9 @@ class MessageController {
     }
 
     @MessageMapping("/chat")
-    void handle(@AuthenticationPrincipal Jwt jwt, @Payload SendMessageDTO chat) {
-        String senderId = jwt.getClaimAsString("sub");
-        logger.info("User {} sending {}", senderId, chat);
-        messageService.sendMessage(chat.conversationId(), senderId, chat.content());
+    void handle(@Payload SendMessageDTO chat) {
+        logger.info("User {} sending {}", chat.userId(), chat);
+        messageService.sendMessage(chat.conversationId(), chat.userId(), chat.content());
     }
 
 }

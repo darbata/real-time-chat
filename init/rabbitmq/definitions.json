@@ -1,0 +1,32 @@
+{
+  "queues": [
+    {
+      "name": "chats",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {
+        "x-queue-type": "classic",
+        "x-dead-letter-exchange": "",
+        "x-dead-letter-routing-key": "dead"
+      }
+    },
+    {
+      "name": "dispatch",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {
+        "x-queue-type": "classic",
+        "x-dead-letter-exchange": "",
+        "x-dead-letter-routing-key": "dead"
+      }
+    },
+    {
+      "name": "dead",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    }
+  ]
+}

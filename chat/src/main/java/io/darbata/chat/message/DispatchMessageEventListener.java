@@ -19,16 +19,16 @@ class DispatchMessageEventListener {
     }
 
     @RabbitListener(queues = "dispatch")
-    void consumeDispatchEvent(DispatchMessageEvent event) {
+    void consumeDispatchEvent(DispatchChatEvent event) {
 
         try {
             log.info("Receive dispatch event: {}", event);
 
             Date date = Date.from(event.sentAt());
 
-            MessageDTO dto = new MessageDTO(
+            ChatDTO dto = new ChatDTO(
                     event.conversationId(),
-                    event.messageId(),
+                    event.chatId(),
                     event.senderId(),
                     event.content(),
                     date
@@ -52,9 +52,5 @@ class DispatchMessageEventListener {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-
-
-
     }
-
 }

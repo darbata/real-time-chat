@@ -14,14 +14,11 @@ class ChatService {
     private static final Logger log = LoggerFactory.getLogger(ChatService.class);
     private final AmqpTemplate template;
     private final ConversationRepository conversationRepository;
-    private final Queue dispatchQueue;
     private final ChatRepository chatRepository;
 
-    ChatService(AmqpTemplate template, ConversationRepository conversationRepository, Queue dispatchQueue,
-                ChatRepository chatRepository) {
+    ChatService(AmqpTemplate template, ConversationRepository conversationRepository, ChatRepository chatRepository) {
         this.template = template;
         this.conversationRepository = conversationRepository;
-        this.dispatchQueue = dispatchQueue;
         this.chatRepository = chatRepository;
     }
 
@@ -43,7 +40,7 @@ class ChatService {
                 chat.sentAt()
         );
 
-        this.template.convertAndSend(dispatchQueue.getName(), dispatchChatEvent);
+        this.template.convertAndSend("dispatch", dispatchChatEvent);
 
         log.info("Dispatching Event: {}", dispatchChatEvent);
     }

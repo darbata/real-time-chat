@@ -2,9 +2,9 @@ package io.darbata.chat.message;
 
 import java.util.Date;
 
-record MessageDTO (
+record ChatDTO (
         long conversationId,
-        String messageId,
+        String chatId,
         String senderId,
         String content,
         Date sentAt

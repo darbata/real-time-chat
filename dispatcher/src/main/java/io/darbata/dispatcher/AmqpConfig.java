@@ -1,7 +1,5 @@
 package io.darbata.dispatcher;
 
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
@@ -21,15 +19,5 @@ class AmqpConfig {
     @Bean
     public JacksonJsonMessageConverter producerJackson2MessageConverter() {
         return new JacksonJsonMessageConverter();
-    }
-
-    @Bean
-    public Queue dispatchQueue() {
-        return QueueBuilder.durable("dispatch").build();
-    }
-
-    @Bean
-    public Queue chatQueue() {
-        return QueueBuilder.durable("chat").build();
     }
 }

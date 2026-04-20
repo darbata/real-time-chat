@@ -40,7 +40,7 @@ public class DynamoDbConfig {
                                 .attributeType(ScalarAttributeType.S)
                                 .build(),
                         AttributeDefinition.builder()
-                                .attributeName("messageId") // sort
+                                .attributeName("chatId") // sort
                                 .attributeType(ScalarAttributeType.S)
                                 .build())
                 .keySchema(
@@ -49,7 +49,7 @@ public class DynamoDbConfig {
                                 .keyType(KeyType.HASH)
                                 .build(),
                         KeySchemaElement.builder()
-                                .attributeName("messageId")
+                                .attributeName("chatId")
                                 .keyType(KeyType.RANGE)
                                 .build())
                 .billingMode(BillingMode.PAY_PER_REQUEST) // TODO: implement provisioned capacity in deployment

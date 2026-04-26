@@ -15,9 +15,11 @@ export default function LoginPage() {
     if (username != "") navigate("/chat")
 
     return  (
-        <form onSubmit={(e) => handleSubmit(e)}>
-            <label htmlFor="login">Login</label>
-            <input type="text" value={login} onChange={(e) => {setLogin(e.target.value)}}/>
-        </form>
+        <main className="bg-blue-200">
+            <form onSubmit={(e) => handleSubmit(e)}>
+                <label htmlFor="login">Login</label>
+                <input type="text" value={login} onChange={(e) => {setLogin(e.target.value)}}/>
+            </form>
+        </main>
     )
 }

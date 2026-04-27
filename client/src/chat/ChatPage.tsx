@@ -1,117 +1,78 @@
+import ConversationsSidebar from "./ConversationsSidebar.tsx";
+import ConversationMessages from "./ConversationMessages.tsx";
+import type {ConversationMetadata} from "./ConversationMetadata.tsx";
+import type {UserMessage} from "./UserMessage.tsx";
+import {useState} from "react";
 
-import {useEffect, useRef, useState} from "react";
-import {Client, type Frame} from "@stomp/stompjs";
-import {useUser} from "../UserContext.tsx";
-import {useNavigate} from "react-router";
-
-type Chat = {
-    conversationId: number,
-    chatId: string,
-    senderId: string,
-    content: string,
-    sentAt: Date
-}
-
-type ChatForm = {
-    conversationId: number,
-    content: string
-}
-
-const fetchInbox = async (username: string) => {
-    const response = await fetch("http://localhost:8080/api/conversations", {
-        method: "GET",
-        headers: {
-            "X-User-Id": username
-        }
-    })
-    const data = await response.json()
-    console.log(data)
-    return data
-}
-
-function ChatPage() {
-    const {username, clearUsername} = useUser();
-    const clientRef = useRef<Client | null>(null);
-    const [connected, setConnected] = useState(false)
-    const navigate = useNavigate();
-
-    const [messageForm, setMessageForm] = useState<ChatForm>({
-        conversationId: 0,
-        content: ""
-    });
-
-    const [messages, setMessages] = useState<Chat[]>([])
-
-    const callback = (frame: Frame) => {
-        const message: Chat = JSON.parse(frame.body) as Chat;
-        console.log(message)
-        setMessages(prev => [...prev, message])
+const conversations: ConversationMetadata[] = [
+    {
+        "id": 1,
+        "participants": [
+            { "id": "alice_wonder" },
+            { "id": "bob_builder" }
+        ],
+        "lastMessage": "See you tomorrow!",
+        "lastMessageAt": "2026-04-26T08:30:00.000Z"
+    },
+    {
+        "id": 2,
+        "participants": [
+            { "id": "charlie_dev" },
+            { "id": "diana_prince" }
+        ],
+        "lastMessage": "Can you review my PR?",
+        "lastMessageAt": "2026-04-25T21:15:00.000Z"
+    },
+    {
+        "id": 3,
+        "participants": [
+            { "id": "alice_wonder" },
+            { "id": "evan_codes" },
+            { "id": "fiona_sharp" }
+        ],
+        "lastMessage": "Sprint planning is at 10am.",
+        "lastMessageAt": "2026-04-25T18:45:00.000Z"
+    },
+    {
+        "id": 4,
+        "participants": [
+            { "id": "george_rx" },
+            { "id": "hannah_lee" }
+        ],
+        "lastMessage": "Haha yeah that was wild 😂",
+        "lastMessageAt": "2026-04-24T14:00:00.000Z"
+    },
+    {
+        "id": 5,
+        "participants": [
+            { "id": "ivan_storm" },
+            { "id": "julia_fn" },
+            { "id": "kyle_bytes" },
+            { "id": "laura_q" }
+        ],
+        "lastMessage": "Anyone free for lunch?",
+        "lastMessageAt": "2026-04-24T11:30:00.000Z"
     }
+];
 
-    useEffect(() => {
-
-        if (username == "") navigate("/")
-
-        const client = new Client({
-            brokerURL: "ws://localhost:8081/ws",
-            connectHeaders: {
-                "X-User-Id": username
-            },
-            onStompError: (frame) => {
-                // frame.headers['message'] has the short reason
-                // frame.body has the exception message
-                console.error("STOMP error:", frame.headers["message"], frame.body);
-            },
-            onConnect: () => {
-                setConnected(true);
-                const connection = client.subscribe("/user/queue/chats", callback);
-                console.log(connection)
-            },
-            onDisconnect: () => setConnected(false)
-        })
-        client.activate();
-        clientRef.current = client;
+const messages: UserMessage[] = [
+    { senderId: "alice_wonder", content: "Hey Bob, are we still on for tomorrow?" }, { senderId: "bob_builder", content: "Yeah for sure! What time works for you?" },
+    { senderId: "alice_wonder", content: "How about 10am at the usual spot?" },
+    { senderId: "bob_builder", content: "Perfect, I'll be there. Should I bring anything?" },
+    { senderId: "alice_wonder", content: "Just yourself haha, I've got everything sorted" },
+    { senderId: "bob_builder", content: "Sounds good 👍 See you tomorrow!" },
+    { senderId: "alice_wonder", content: "See you tomorrow!" },
+];
 
 
+export default function ChatPage() {
 
-        return () => { client.deactivate(); };
-    }, [username, navigate])
-
-    const handleSubmit = (e: React.SubmitEvent) => {
-        e.preventDefault();
-        if (!clientRef.current?.connected) return;
-        clientRef.current.publish({
-            destination: "/app/chat",
-            body: JSON.stringify(messageForm),
-            headers: {
-                "X-User-Id": username
-            }
-        });
-        console.log("sending chat")
-    }
-
+    const [selectedConversationId, setSelectedConversationId] = useState(0);
 
     return (
-
-        <div>
-            <form onSubmit={handleSubmit}>
-                <input type="number" value={messageForm.conversationId} onChange={(e) => {setMessageForm({...messageForm, conversationId: Number(e.target.value)})}}/>
-                <input type="text" value={messageForm.content} onChange={(e) => {setMessageForm({...messageForm, content: e.target.value})}}/>
-                <button type="submit" disabled={!connected}>Submit</button>
-            </form>
-
-            <button onClick={() => fetchInbox(username)}>Fetch Inbox</button>
-
-            <ul>
-                {messages.map((chat) => (
-                    <li key={chat.chatId}>{chat.content}</li>
-                ))}
-            </ul>
-
-            <button onClick={() => clearUsername()}>Logout</button>
-        </div>
-
-    );
+        <main className="bg-background-400 w-full h-full flex">
+            <ConversationsSidebar conversations={conversations} selectedConversationId={selectedConversationId} setSelectedConversationId={setSelectedConversationId}  />
+            <ConversationMessages conversation={conversations[0]} messages={messages} />
+        </main>
+    )
 }
-
-export default ChatPage

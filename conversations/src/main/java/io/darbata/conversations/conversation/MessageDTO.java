@@ -3,7 +3,7 @@ package io.darbata.conversations.conversation;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public record MessageDTO(
+public record MessageDTO (
         UUID messageId,
         long from,
         long to,

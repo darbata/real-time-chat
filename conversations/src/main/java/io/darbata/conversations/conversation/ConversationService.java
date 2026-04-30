@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ConversationService {
+class ConversationService {
 
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
@@ -15,12 +15,9 @@ public class ConversationService {
         this.messageRepository = messageRepository;
     }
 
-    public InboxDTO fetchUserInbox(long userId, int conversationQueryLimit, int offset, int messageQueryLimit) {
-        int queryLimit = Math.min(10, conversationQueryLimit);
-        List<Long> conversationIds = conversationRepository.findRecentConversationIds(userId, queryLimit, offset);
-        queryLimit = Math.min(50, messageQueryLimit);
-        List<ConversationDTO> conversationsMessages = messageRepository.findConversationsMessages(conversationIds, queryLimit);
-        return new InboxDTO(conversationsMessages);
+    public List<ConversationDTO> fetchConversations(String userId, int limit, int offset) {
+        int queryLimit = Math.min(10, limit);
+        return conversationRepository.findRecentConversationsWithParticipants(userId, queryLimit, offset);
     }
 
 }

@@ -1,5 +1,7 @@
 package io.darbata.conversations.conversation;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +14,8 @@ import java.net.URI;
 
 @Configuration
 public class DynamoDbConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(DynamoDbConfig.class);
 
     @Value("${aws.sdk.dynamo-db.url}")
     private String url;
@@ -54,11 +58,11 @@ public class DynamoDbConfig {
                                 .build())
                 .billingMode(BillingMode.PAY_PER_REQUEST) // TODO: implement provisioned capacity in deployment
                 .build();
+
         try {
             ddb.createTable(createTableRequest);
-        } catch (Exception ignored) {
-            // table exists already
-            return;
+        } catch (DynamoDbException e) {
+            log.error(e.getMessage());
         }
     }
 

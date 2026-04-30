@@ -3,6 +3,8 @@ package io.darbata.conversations.conversation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/conversations")
 class ConversationController {
@@ -13,12 +15,14 @@ class ConversationController {
         this.conversationService = conversationService;
     }
 
-    @GetMapping("")
-    ResponseEntity<?> getConversations(
-            @RequestParam long userId
+    @GetMapping()
+    ResponseEntity<List<ConversationDTO>> getConversations(
+            @RequestHeader("X-User-Id") String userId, // custom header
+            @RequestParam("limit") int limit,
+            @RequestParam("offset") int offset
     ) {
         return ResponseEntity.ok(
-                conversationService.fetchUserInbox(userId, 10, 0, 50)
+            conversationService.fetchConversations(userId, limit, offset)
         );
     }
 

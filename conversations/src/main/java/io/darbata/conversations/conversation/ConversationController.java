@@ -16,13 +16,25 @@ class ConversationController {
     }
 
     @GetMapping()
-    ResponseEntity<List<ConversationDTO>> getConversations(
+    ResponseEntity<List<ConversationDTO>> getConversations (
             @RequestHeader("X-User-Id") String userId, // custom header
             @RequestParam("limit") int limit,
             @RequestParam("offset") int offset
     ) {
         return ResponseEntity.ok(
             conversationService.fetchConversations(userId, limit, offset)
+        );
+    }
+
+    @GetMapping("/{conversationId}")
+    ResponseEntity<List<MessageDTO>> getConversation (
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable Long conversationId,
+            @RequestParam("limit") int limit,
+            @RequestParam("offset") int offset
+    ) {
+        return ResponseEntity.ok(
+            conversationService.fetchConversationMessages(userId, conversationId, limit, offset)
         );
     }
 

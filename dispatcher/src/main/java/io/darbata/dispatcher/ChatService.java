@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.amqp.core.Queue;
 
 import java.util.List;
 
@@ -23,6 +22,17 @@ class ChatService {
     }
 
     public void consumeIncomingMessage(IncomingChat incomingChat) {
+        produceDispatchChatEvent(incomingChat);
+        produceRecentMessageEvent(incomingChat.conversationId(),  incomingChat.content());
+    }
+
+    private void produceRecentMessageEvent(Long conversationId, String content) {
+        RecentMessageEvent recentMessageEvent = new RecentMessageEvent(conversationId, content);
+        this.template.convertAndSend("recent-messages", recentMessageEvent);
+    }
+
+    private void produceDispatchChatEvent(IncomingChat incomingChat) {
+
         String senderId = incomingChat.senderId();
 
         List<String> recipients = conversationRepository.fetchRecipients(
@@ -41,7 +51,5 @@ class ChatService {
         );
 
         this.template.convertAndSend("dispatch", dispatchChatEvent);
-
-        log.info("Dispatching Event: {}", dispatchChatEvent);
     }
 }

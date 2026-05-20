@@ -38,4 +38,11 @@ class ConversationController {
         );
     }
 
+    @PostMapping("")
+    ResponseEntity<ConversationDTO> createConversation(
+            
+    ) {
+
+    }
+
 }

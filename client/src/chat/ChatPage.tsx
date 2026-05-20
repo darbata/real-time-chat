@@ -56,12 +56,13 @@ const conversations: ConversationMetadata[] = [
 ];
 
 const messages: UserMessage[] = [
-    { senderId: "alice_wonder", content: "Hey Bob, are we still on for tomorrow?" }, { senderId: "bob_builder", content: "Yeah for sure! What time works for you?" },
-    { senderId: "alice_wonder", content: "How about 10am at the usual spot?" },
-    { senderId: "bob_builder", content: "Perfect, I'll be there. Should I bring anything?" },
-    { senderId: "alice_wonder", content: "Just yourself haha, I've got everything sorted" },
-    { senderId: "bob_builder", content: "Sounds good 👍 See you tomorrow!" },
-    { senderId: "alice_wonder", content: "See you tomorrow!" },
+    { id: "chat-1", senderId: "alice_wonder", content: "Hey Bob, are we still on for tomorrow?" },
+    { id: "chat-2", senderId: "bob_builder", content: "Yeah for sure! What time works for you?" },
+    { id: "chat-3", senderId: "alice_wonder", content: "How about 10am at the usual spot?" },
+    { id: "chat-4", senderId: "bob_builder", content: "Perfect, I'll be there. Should I bring anything?" },
+    { id: "chat-5", senderId: "alice_wonder", content: "Just yourself haha, I've got everything sorted" },
+    { id: "chat-6", senderId: "bob_builder", content: "Sounds good 👍 See you tomorrow!" },
+    { id: "chat-7", senderId: "alice_wonder", content: "See you tomorrow!" },
 ];
 
 

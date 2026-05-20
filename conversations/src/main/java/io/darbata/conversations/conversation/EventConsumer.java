@@ -21,5 +21,4 @@ public class EventConsumer {
         conversationService.setLastMessage(event.conversationId(), event.content());
     }
 
-
 }

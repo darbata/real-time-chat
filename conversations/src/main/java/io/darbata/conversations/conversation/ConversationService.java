@@ -2,8 +2,8 @@ package io.darbata.conversations.conversation;
 
 import io.darbata.conversations.conversation.dto.ConversationDTO;
 import io.darbata.conversations.conversation.dto.MessageDTO;
+import io.darbata.conversations.conversation.exceptions.UserNotInConversationException;
 import io.darbata.conversations.conversation.models.User;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,11 +23,8 @@ public class ConversationService {
     }
 
     public List<String> fetchConversationParticipantIds(String userId, Long conversationId) {
-
-        if (!isUserInConversation(userId, conversationId)) throw new RuntimeException("User not in conversation");
-
+        if (!isUserInConversation(userId, conversationId)) throw new UserNotInConversationException("User not in conversation");
         List<User> users = conversationRepository.findConversationParticipantsById(conversationId);
-
         return users.stream().map(User::username).toList();
     }
 
@@ -35,9 +32,6 @@ public class ConversationService {
         // to be implemented with RestClient
         return null;
     }
-
-
-
 
     private boolean isUserInConversation(String userId, Long conversationId) {
         return this.conversationRepository.isUserInConversation(conversationId, userId);

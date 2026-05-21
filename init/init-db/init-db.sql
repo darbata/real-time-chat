@@ -3,14 +3,13 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS conversations (
-    id BIGINT PRIMARY KEY 
+    id BIGSERIAL PRIMARY KEY 
 );
 
 CREATE TABLE IF NOT EXISTS user_conversations (
     user_id TEXT NOT NULL REFERENCES users(id),
     conversation_id BIGINT NOT NULL REFERENCES conversations(id),
     joined_at TIMESTAMP DEFAULT NOW(),
-    last_message_at TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (user_id, conversation_id)
 );
 
@@ -22,3 +21,23 @@ FROM conversations
 JOIN user_conversations ON user_conversations.conversation_id = conversations.id
 JOIN users on users.id = user_conversations.user_id
 GROUP BY conversations.id;
+
+INSERT INTO users (id) VALUES
+('luffy'), ('sanji'), ('zoro'), ('chopper'),
+('nami'), ('robin'), ('ussop');
+
+INSERT INTO conversations (id) VALUES (1), (2), (3), (4), (5);
+
+INSERT INTO user_conversations (user_id, conversation_id) VALUES
+('luffy', 1),
+('sanji', 1);
+ 
+INSERT INTO user_conversations (user_id, conversation_id) VALUES
+('luffy', 2),
+('zoro', 2);
+ 
+INSERT INTO user_conversations (user_id, conversation_id) VALUES
+('luffy', 3),
+('nami', 3),
+('robin', 3),
+('chopper', 3);

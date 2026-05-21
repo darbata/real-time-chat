@@ -1,5 +1,6 @@
 package io.darbata.conversations.conversation;
 
+import io.darbata.conversations.conversation.dto.ConversationDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,25 +25,6 @@ class ConversationController {
         return ResponseEntity.ok(
             conversationService.fetchConversations(userId, limit, offset)
         );
-    }
-
-    @GetMapping("/{conversationId}")
-    ResponseEntity<List<MessageDTO>> getConversation (
-            @RequestHeader("X-User-Id") String userId,
-            @PathVariable Long conversationId,
-            @RequestParam("limit") int limit,
-            @RequestParam("offset") int offset
-    ) {
-        return ResponseEntity.ok(
-            conversationService.fetchConversationMessages(userId, conversationId, limit, offset)
-        );
-    }
-
-    @PostMapping("")
-    ResponseEntity<ConversationDTO> createConversation(
-            
-    ) {
-
     }
 
 }

@@ -1,5 +1,7 @@
 package io.darbata.conversations.conversation;
 
+import io.darbata.conversations.conversation.dto.ConversationDTO;
+import io.darbata.conversations.conversation.dto.MessageDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -8,11 +10,9 @@ import java.util.List;
 public class ConversationService {
 
     private final ConversationRepository conversationRepository;
-    private final MessageRepository messageRepository;
 
-    public ConversationService(ConversationRepository conversationRepository, MessageRepository messageRepository) {
+    public ConversationService(ConversationRepository conversationRepository) {
         this.conversationRepository = conversationRepository;
-        this.messageRepository = messageRepository;
     }
 
     public List<ConversationDTO> fetchConversations(String userId, int limit, int offset) {
@@ -21,19 +21,12 @@ public class ConversationService {
     }
 
     public List<MessageDTO> fetchConversationMessages(String userId, Long conversationId, int limit, int offset) {
-        if (!isUserInConversation(userId, conversationId))
-            throw new RuntimeException("User " + userId + "  not in conversation " + conversationId);
-
-        int queryLimit = Math.min(24, limit);
-
-        return messageRepository.fetchMessages(conversationId, queryLimit, null);
+        // to be implemented with RestClient
+        return null;
     }
 
     private boolean isUserInConversation(String userId, Long conversationId) {
         return this.conversationRepository.isUserInConversation(conversationId, userId);
     }
 
-    public void setLastMessage(long conversationId, String content) {
-        conversationRepository.updateConversationLastMessage(conversationId, content);
-    }
 }

@@ -1,12 +1,12 @@
 package io.darbata.conversations.conversation;
 
+import io.darbata.conversations.conversation.dto.ConversationDTO;
+import io.darbata.conversations.conversation.models.User;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
-import javax.print.DocFlavor;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 class ConversationRepository {
@@ -35,9 +35,7 @@ class ConversationRepository {
                         rs.getLong("conversation_id"),
                         Arrays.stream((String[]) rs.getArray("participant_ids").getArray())
                                 .map(User::new)
-                                .toList(),
-                        rs.getString("last_message"),
-                        rs.getString("last_message_at")
+                                .toList()
                 ))
                 .list();
     }
@@ -57,16 +55,4 @@ class ConversationRepository {
                 .isPresent();
     }
 
-    public void updateConversationLastMessage(long conversationId, String content) {
-        String query = """
-            UPDATE user_conversations
-            SET last_message = :content
-            WHERE conversation_id = :conversationId;
-        """;
-
-        client.sql(query)
-                .param("content", content)
-                .param("conversationId", conversationId)
-                .update();
-    }
 }

@@ -27,4 +27,13 @@ class ConversationController {
         );
     }
 
+    @GetMapping("/{conversationId}/participants")
+    ResponseEntity<List<String>> getConversationParticipantIds (
+        @RequestHeader("X-User-Id") String userId, // custom header
+        @PathVariable Long conversationId
+    ) {
+        return ResponseEntity.ok(
+            conversationService.fetchConversationParticipantIds(userId, conversationId)
+        );
+    }
 }

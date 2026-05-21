@@ -54,4 +54,18 @@ class ConversationRepository {
                 .isPresent();
     }
 
+    public List<User> findConversationParticipantsById(Long conversationId) {
+        String query = """
+        SELECT u.id
+        FROM users u
+        JOIN user_conversations uc ON u.id = uc.user_id
+        WHERE uc.conversation_id = :conversationId
+        """;
+
+        return client.sql(query)
+            .param("conversationId", conversationId)
+            .query((rs, n) -> new User(rs.getString("id")))
+            .list();
+    }
+
 }

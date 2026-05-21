@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 class ConversationRepository {
@@ -20,10 +21,8 @@ class ConversationRepository {
     List<ConversationDTO> findRecentConversationsWithParticipants(String userId, int limit, int offset) {
         String query = """
             SELECT * FROM conversations_with_participants
-            JOIN user_conversations ON
-                user_conversations.conversation_id = conversations_with_participants.conversation_id
-            WHERE user_conversations.user_id = :userId
-            LIMIT :limit OFFSET :offset
+            WHERE :userId = ANY(participant_ids)
+            LIMIT :limit OFFSET :offset;
         """;
 
         return client.sql(query)
@@ -37,6 +36,23 @@ class ConversationRepository {
                                 .toList()
                 ))
                 .list();
+    }
+
+    public Optional<ConversationDTO> findConversationById(Long conversationId) {
+        String query = """
+            SELECT * FROM conversations_with_participants
+            WHERE conversation_id = :conversationId
+        """;
+
+        return client.sql(query)
+                .param("conversationId", conversationId)
+                .query((rs, n) -> new ConversationDTO (
+                        rs.getLong("conversation_id"),
+                        Arrays.stream((String[]) rs.getArray("participant_ids").getArray())
+                                .map(User::new)
+                                .toList()
+                ))
+                .optional();
     }
 
     public boolean isUserInConversation(Long conversationId, String userId) {
@@ -67,5 +83,35 @@ class ConversationRepository {
             .query((rs, n) -> new User(rs.getString("id")))
             .list();
     }
+
+    public ConversationDTO createConversationWithParticipants(List<String> participantIds) {
+        String query = """
+        WITH new_conversation AS (
+            INSERT INTO conversations DEFAULT VALUES
+            RETURNING id
+        ),
+        inserted_participants AS (
+            INSERT INTO user_conversations (user_id, conversation_id)
+            SELECT unnest(CAST(:participantIds AS text[])), (SELECT id FROM new_conversation)
+            RETURNING user_id, conversation_id
+        )
+        SELECT
+            conversation_id,
+            array_agg(user_id) AS participant_ids
+        FROM inserted_participants
+        GROUP BY conversation_id
+        """;
+
+        return client.sql(query)
+                .param("participantIds", participantIds.toArray(new String[0]))
+                .query((rs, n) -> new ConversationDTO(
+                        rs.getLong("conversation_id"),
+                        Arrays.stream((String[]) rs.getArray("participant_ids").getArray())
+                                .map(User::new)
+                                .toList()
+                ))
+                .single();
+    }
+
 
 }

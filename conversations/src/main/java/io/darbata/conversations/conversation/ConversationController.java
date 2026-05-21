@@ -1,9 +1,11 @@
 package io.darbata.conversations.conversation;
 
 import io.darbata.conversations.conversation.dto.ConversationDTO;
+import io.darbata.conversations.conversation.dto.CreateConversationRequestDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -27,6 +29,16 @@ class ConversationController {
         );
     }
 
+    @GetMapping("/{conversationId}")
+    ResponseEntity<ConversationDTO> getConversationById (
+            @RequestHeader("X-User-Id") String userId, // custom header
+            @PathVariable Long conversationId
+    ) {
+        return ResponseEntity.ok(
+                conversationService.fetchConversationById(userId, conversationId)
+        );
+    }
+
     @GetMapping("/{conversationId}/participants")
     ResponseEntity<List<String>> getConversationParticipantIds (
         @RequestHeader("X-User-Id") String userId, // custom header
@@ -35,5 +47,18 @@ class ConversationController {
         return ResponseEntity.ok(
             conversationService.fetchConversationParticipantIds(userId, conversationId)
         );
+    }
+
+    @PostMapping("")
+    ResponseEntity<ConversationDTO> createConversation (
+        @RequestHeader("X-User-Id") String userId, // custom header
+        @RequestBody CreateConversationRequestDTO request
+    ) {
+
+        ConversationDTO conversation =  conversationService.createConversation(userId, request.participantIds());
+
+        return ResponseEntity
+            .created(URI.create("api/conversations/" + conversation.id()))
+            .body(conversation);
     }
 }

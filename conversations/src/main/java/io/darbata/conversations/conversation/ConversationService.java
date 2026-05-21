@@ -2,8 +2,11 @@ package io.darbata.conversations.conversation;
 
 import io.darbata.conversations.conversation.dto.ConversationDTO;
 import io.darbata.conversations.conversation.dto.MessageDTO;
+import io.darbata.conversations.conversation.exceptions.NoConversationException;
+import io.darbata.conversations.conversation.exceptions.UserNotFoundException;
 import io.darbata.conversations.conversation.exceptions.UserNotInConversationException;
 import io.darbata.conversations.conversation.models.User;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,9 +25,20 @@ public class ConversationService {
         return conversationRepository.findRecentConversationsWithParticipants(userId, queryLimit, offset);
     }
 
-    public List<String> fetchConversationParticipantIds(String userId, Long conversationId) {
+    public ConversationDTO fetchConversationById(String userId, Long conversationId) {
         if (!isUserInConversation(userId, conversationId)) throw new UserNotInConversationException("User not in conversation");
+
+        return conversationRepository.findConversationById(conversationId).orElseThrow(
+                () -> new NoConversationException("No conversation with id" + conversationId)
+        );
+    }
+
+    public List<String> fetchConversationParticipantIds(String userId, Long conversationId) {
+        if (!isUserInConversation(userId, conversationId))
+            throw new UserNotInConversationException("User not in conversation");
+
         List<User> users = conversationRepository.findConversationParticipantsById(conversationId);
+
         return users.stream().map(User::username).toList();
     }
 
@@ -33,8 +47,21 @@ public class ConversationService {
         return null;
     }
 
+    public ConversationDTO createConversation(String userId, List<String> participants) {
+        // participants needs to include userId
+        if (!participants.contains(userId)) participants.add(userId);
+
+        try {
+            return conversationRepository.createConversationWithParticipants(participants);
+        } catch (DataIntegrityViolationException e) {
+            throw new UserNotFoundException("One or more of the participantIds are invalid");
+        }
+
+    }
+
     private boolean isUserInConversation(String userId, Long conversationId) {
         return this.conversationRepository.isUserInConversation(conversationId, userId);
     }
+
 
 }

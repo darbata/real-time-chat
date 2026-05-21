@@ -26,7 +26,8 @@ public class ConversationService {
     }
 
     public ConversationDTO fetchConversationById(String userId, Long conversationId) {
-        if (!isUserInConversation(userId, conversationId)) throw new UserNotInConversationException("User not in conversation");
+        if (!isUserInConversation(userId, conversationId))
+            throw new UserNotInConversationException("User not in conversation");
 
         return conversationRepository.findConversationById(conversationId).orElseThrow(
                 () -> new NoConversationException("No conversation with id" + conversationId)
@@ -56,12 +57,17 @@ public class ConversationService {
         } catch (DataIntegrityViolationException e) {
             throw new UserNotFoundException("One or more of the participantIds are invalid");
         }
+    }
 
+    public void leaveConversation(String userId, Long conversationId) {
+        if (!isUserInConversation(userId, conversationId))
+            throw new UserNotInConversationException("User not in conversation");
+
+        conversationRepository.removeUserFromConversation(userId, conversationId);
     }
 
     private boolean isUserInConversation(String userId, Long conversationId) {
         return this.conversationRepository.isUserInConversation(conversationId, userId);
     }
-
 
 }

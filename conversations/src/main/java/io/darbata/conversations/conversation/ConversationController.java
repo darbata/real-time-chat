@@ -54,11 +54,19 @@ class ConversationController {
         @RequestHeader("X-User-Id") String userId, // custom header
         @RequestBody CreateConversationRequestDTO request
     ) {
-
         ConversationDTO conversation =  conversationService.createConversation(userId, request.participantIds());
 
         return ResponseEntity
             .created(URI.create("api/conversations/" + conversation.id()))
             .body(conversation);
+    }
+
+    @DeleteMapping("/{conversationId}/leave")
+    ResponseEntity<Void> removeUserFromConverastion (
+        @RequestHeader("X-User-Id") String userId, // custom header
+        @PathVariable Long conversationId
+    ) {
+        conversationService.leaveConversation(userId, conversationId);
+        return ResponseEntity.noContent().build();
     }
 }

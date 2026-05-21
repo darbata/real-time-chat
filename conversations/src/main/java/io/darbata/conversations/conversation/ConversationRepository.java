@@ -113,5 +113,16 @@ class ConversationRepository {
                 .single();
     }
 
+    public void removeUserFromConversation(String userId, Long conversationId) {
+        String query = """
+            DELETE FROM user_conversations
+            WHERE user_id = :userId
+            AND conversation_id = :conversationId
+        """;
 
+        client.sql(query)
+                .param("userId", userId)
+                .param("conversationId", conversationId)
+                .update();
+    }
 }

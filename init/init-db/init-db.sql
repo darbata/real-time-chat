@@ -26,7 +26,9 @@ INSERT INTO users (id) VALUES
 ('luffy'), ('sanji'), ('zoro'), ('chopper'),
 ('nami'), ('robin'), ('ussop');
 
-INSERT INTO conversations (id) VALUES (1), (2), (3), (4), (5);
+INSERT INTO conversations DEFAULT VALUES;
+INSERT INTO conversations DEFAULT VALUES;
+INSERT INTO conversations DEFAULT VALUES;
 
 INSERT INTO user_conversations (user_id, conversation_id) VALUES
 ('luffy', 1),

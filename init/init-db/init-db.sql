@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS user_conversations (
     PRIMARY KEY (user_id, conversation_id)
 );
 
-CREATE VIEW conversation_with_participants AS
+CREATE VIEW conversations_with_participants AS
 SELECT
-    conversations.id,
+    conversations.id AS conversation_id,
     array_agg(users.id) AS participant_ids
 FROM conversations
 JOIN user_conversations ON user_conversations.conversation_id = conversations.id

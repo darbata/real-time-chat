@@ -23,7 +23,6 @@ class ConversationRepository {
             JOIN user_conversations ON
                 user_conversations.conversation_id = conversations_with_participants.conversation_id
             WHERE user_conversations.user_id = :userId
-            ORDER BY user_conversations.last_message_at DESC
             LIMIT :limit OFFSET :offset
         """;
 

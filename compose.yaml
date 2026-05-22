@@ -44,6 +44,7 @@ services:
       - DYNAMODB_HOST=dynamodb
       - DYNAMODB_PORT=8000
       - DYNAMODB_TABLE=Conversations
+      - CONVERSATIONS_API_URI=http://conversations:8080/api
     depends_on:
       broker:
         condition: service_healthy

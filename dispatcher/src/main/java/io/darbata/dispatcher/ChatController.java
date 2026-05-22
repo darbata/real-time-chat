@@ -3,6 +3,7 @@ package io.darbata.dispatcher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -10,9 +11,11 @@ import java.util.Optional;
 public class ChatController {
 
     private final ChatService chatService;
+    private final ConversationService conversationService;
 
-    ChatController(ChatService chatService) {
+    ChatController(ChatService chatService, ConversationService conversationService) {
         this.chatService = chatService;
+        this.conversationService = conversationService;
     }
 
     @GetMapping("/{conversationId}/messages")
@@ -41,6 +44,15 @@ public class ChatController {
     ) {
         chatService.deleteMessage(conversationId, messageId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{conversationId}/participants")
+    public ResponseEntity<List<String>> getParticipants (
+        @RequestHeader("X-User-Id") String userId,
+        @PathVariable("conversationId") long conversationId
+    ) {
+        List<String> participants = conversationService.fetchConversationParticipants(userId, conversationId);
+        return ResponseEntity.ok(participants);
     }
 
 }

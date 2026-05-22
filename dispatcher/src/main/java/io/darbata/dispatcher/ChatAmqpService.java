@@ -13,13 +13,13 @@ import java.util.List;
 class ChatAmqpService {
 
     private final AmqpTemplate template;
-    private final ConversationRepository conversationRepository;
     private final ChatRepository chatRepository;
+    private final ConversationService conversationService;
 
-    ChatAmqpService(AmqpTemplate template, ConversationRepository conversationRepository, ChatRepository chatRepository) {
+    ChatAmqpService(AmqpTemplate template, ChatRepository chatRepository, ConversationService conversationService) {
         this.template = template;
-        this.conversationRepository = conversationRepository;
         this.chatRepository = chatRepository;
+        this.conversationService = conversationService;
     }
 
     public void consumeIncomingMessage(IncomingChat incomingChat) {
@@ -36,10 +36,13 @@ class ChatAmqpService {
 
         String senderId = incomingChat.senderId();
 
-        List<String> recipients = conversationRepository.fetchRecipients(
-                incomingChat.conversationId(),
-                senderId
+        // sends to all participants (including sender)
+        // allows the sender to perform the 'sent'
+        List<String> recipients = conversationService.fetchConversationParticipants(
+                senderId,
+                incomingChat.conversationId()
         );
+
         Chat chat = chatRepository.save(incomingChat);
 
         DispatchChatEvent dispatchChatEvent = new DispatchChatEvent(

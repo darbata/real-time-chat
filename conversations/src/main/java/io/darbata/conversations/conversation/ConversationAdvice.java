@@ -1,5 +1,6 @@
 package io.darbata.conversations.conversation;
 
+import io.darbata.conversations.conversation.exceptions.ChatNotFoundException;
 import io.darbata.conversations.conversation.exceptions.NoConversationException;
 import io.darbata.conversations.conversation.exceptions.UserNotFoundException;
 import io.darbata.conversations.conversation.exceptions.UserNotInConversationException;
@@ -23,6 +24,11 @@ public class ConversationAdvice {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
+
+    @ExceptionHandler(ChatNotFoundException.class)
+    public ResponseEntity<String> handleChatNotFoundException(ChatNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 

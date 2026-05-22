@@ -1,4 +1,4 @@
-package io.darbata.dispatcher;
+package io.darbata.dispatcher.dto;
 
 import java.util.Optional;
 

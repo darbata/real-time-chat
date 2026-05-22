@@ -83,4 +83,25 @@ class ConversationController {
         conversationService.leaveConversation(userId, conversationId);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{conversationId}/messages/{messageId}")
+    public ResponseEntity<?> updateMessage (
+        @RequestHeader("X-User-Id") String userId,
+        @PathVariable("conversationId") long conversationId,
+        @PathVariable("messageId") String messageId,
+        @RequestBody String updatedMessageContent
+    ) {
+        conversationService.updateMessage(userId, conversationId, messageId, updatedMessageContent);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{conversationId}/messages/{messageId}")
+    public ResponseEntity<?> deleteMessage (
+        @RequestHeader("X-User-Id") String userId,
+        @PathVariable("conversationId") long conversationId,
+        @PathVariable("messageId") String messageId
+    ) {
+        conversationService.deleteMessage(userId, conversationId, messageId);
+        return ResponseEntity.noContent().build();
+    }
 }

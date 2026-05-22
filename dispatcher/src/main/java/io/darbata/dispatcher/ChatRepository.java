@@ -31,6 +31,18 @@ public class ChatRepository {
 
     }
 
+    public void updateMessage(long conversationId, String messageId, String updatedMessageContent) {
+        store.update(
+            Long.toString(conversationId),
+            messageId,
+            updatedMessageContent
+        );
+    }
+
+    public void deleteMessage(long conversationId, String messageId) {
+        store.delete(Long.toString(conversationId), messageId);
+    }
+
     List<Chat> fetchMessageByConversationId(String conversationId, Optional<String> before, int limit) {
         return store.get(conversationId, before, limit);
     }
@@ -38,6 +50,7 @@ public class ChatRepository {
     private String createChatId() {
         return UlidCreator.getMonotonicUlid().toString();
     }
+
 }
 
 

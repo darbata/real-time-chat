@@ -1,10 +1,10 @@
 package io.darbata.conversations;
 
 import io.darbata.conversations.conversation.dto.FetchedMessagesDTO;
+import io.darbata.conversations.conversation.exceptions.ChatNotFoundException;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-
-import java.util.Optional;
 
 @Service
 public class MessageClient {
@@ -36,5 +36,32 @@ public class MessageClient {
                         .build(conversationId))
                 .retrieve()
                 .body(FetchedMessagesDTO.class);
+    }
+
+    public void updateMessage(long conversationId, String messageId, String updatedMessageContent) {
+        client
+            .put()
+            .uri(uriBuilder -> uriBuilder
+                    .path("/conversations/{conversationId}/messages/{messageId}")
+                    .build(conversationId, messageId))
+                .body(updatedMessageContent)
+            .retrieve()
+            .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                throw new ChatNotFoundException("Chat not found");
+            })
+            .toBodilessEntity();
+    }
+
+    public void deleteMessage(long conversationId, String messageId) {
+        client
+            .delete()
+            .uri(uriBuilder -> uriBuilder
+                .path("/conversations/{conversationId}/messages/{messageId}")
+                    .build(conversationId, messageId))
+            .retrieve()
+            .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                throw new ChatNotFoundException("Chat not found");
+            })
+            .toBodilessEntity();
     }
 }

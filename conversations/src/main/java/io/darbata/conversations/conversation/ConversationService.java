@@ -3,7 +3,6 @@ package io.darbata.conversations.conversation;
 import io.darbata.conversations.MessageClient;
 import io.darbata.conversations.conversation.dto.ConversationDTO;
 import io.darbata.conversations.conversation.dto.FetchedMessagesDTO;
-import io.darbata.conversations.conversation.dto.MessageDTO;
 import io.darbata.conversations.conversation.exceptions.NoConversationException;
 import io.darbata.conversations.conversation.exceptions.UserNotFoundException;
 import io.darbata.conversations.conversation.exceptions.UserNotInConversationException;
@@ -12,7 +11,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ConversationService {
@@ -77,8 +75,24 @@ public class ConversationService {
         conversationRepository.removeUserFromConversation(userId, conversationId);
     }
 
+    public void updateMessage(String userId, long conversationId, String messageId, String updatedMessageContent) {
+        if (!isUserInConversation(userId, conversationId))
+            throw new UserNotInConversationException("User not in conversation");
+
+        messageClient.updateMessage(conversationId, messageId, updatedMessageContent);
+
+    }
+
+    public void deleteMessage(String userId, long conversationId, String messageId) {
+        if (!isUserInConversation(userId, conversationId))
+            throw new UserNotInConversationException("User not in conversation");
+
+        messageClient.deleteMessage(conversationId, messageId);
+    }
+
     private boolean isUserInConversation(String userId, Long conversationId) {
         return this.conversationRepository.isUserInConversation(conversationId, userId);
     }
+
 
 }

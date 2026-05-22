@@ -24,4 +24,11 @@ public class ChatService {
         return new MessagesDTO(chats, oldestChatId);
     }
 
+    public void updateMessage(long conversationId, String messageId, String updatedMessageContent) {
+        chatRepository.updateMessage(conversationId, messageId, updatedMessageContent);
+    }
+
+    public void deleteMessage(long conversationId, String messageId) {
+        chatRepository.deleteMessage(conversationId, messageId);
+    }
 }

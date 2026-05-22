@@ -1,15 +1,13 @@
 package io.darbata.dispatcher;
 
+import io.darbata.dispatcher.exceptions.ChatNotFoundException;
 import io.darbata.dispatcher.models.Chat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
-import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.time.Instant;
 import java.util.*;
@@ -53,6 +51,64 @@ public class DynamoDbKvStore implements KVStore {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public void update(String partitionKey, String sortKey, String content) {
+        Map<String, AttributeValue> key = Map.of(
+            "conversationId", AttributeValue.builder().s(partitionKey).build(),
+            "chatId", AttributeValue.builder().s(sortKey).build()
+        );
+
+        Map<String, AttributeValue> values = Map.of(
+            ":content", AttributeValue.builder().s(content).build()
+        );
+
+        // `content` is a DynamoDB reserved word, so alias it via #content
+        Map<String, String> names = Map.of("#content", "content");
+
+        UpdateItemRequest request = UpdateItemRequest.builder()
+                .tableName(tableName)
+                .key(key)
+                .updateExpression("SET #content = :content")
+                .conditionExpression("attribute_exists(chatId)")
+                .expressionAttributeNames(names)
+                .expressionAttributeValues(values)
+                .build();
+
+        try {
+            client.updateItem(request);
+            logger.info("Updated chat {} in conversation {}", sortKey, partitionKey);
+        } catch (ConditionalCheckFailedException e) {
+            throw new ChatNotFoundException("Chat not found");
+        } catch (Exception e) {
+            logger.error("Failed to update chat {} in conversation {}", sortKey, partitionKey, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void delete(String partitionKey, String sortKey) {
+        Map<String, AttributeValue> key = Map.of(
+            "conversationId", AttributeValue.builder().s(partitionKey).build(),
+            "chatId",         AttributeValue.builder().s(sortKey).build()
+        );
+
+        DeleteItemRequest request = DeleteItemRequest.builder()
+            .tableName(tableName)
+            .key(key)
+            .conditionExpression("attribute_exists(chatId)")
+            .build();
+
+        try {
+            client.deleteItem(request);
+            logger.info("Deleted chat {} in conversation {}", sortKey, partitionKey);
+        } catch (ConditionalCheckFailedException e) {
+            throw new ChatNotFoundException("Chat not found");
+        } catch (Exception e) {
+            logger.error("Failed to delete chat {} in conversation {}", sortKey, partitionKey, e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

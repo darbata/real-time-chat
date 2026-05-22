@@ -19,10 +19,10 @@ public class ChatController {
     @GetMapping("/{conversationId}/messages")
     public ResponseEntity<MessagesDTO> getMessages (
         @PathVariable("conversationId") long conversationId,
-        @RequestParam Optional<String> beforeMessageId,
-        @RequestParam int limit
+        @RequestParam(required = false) String before,
+        @RequestParam(defaultValue = "50") int limit
     ) {
-        return ResponseEntity.ok(chatService.fetchConversationMessages(conversationId, beforeMessageId, limit));
+        return ResponseEntity.ok(chatService.fetchConversationMessages(conversationId, Optional.ofNullable(before), limit));
     }
 
 }

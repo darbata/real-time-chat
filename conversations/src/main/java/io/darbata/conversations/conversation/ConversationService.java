@@ -1,6 +1,8 @@
 package io.darbata.conversations.conversation;
 
+import io.darbata.conversations.MessageClient;
 import io.darbata.conversations.conversation.dto.ConversationDTO;
+import io.darbata.conversations.conversation.dto.FetchedMessagesDTO;
 import io.darbata.conversations.conversation.dto.MessageDTO;
 import io.darbata.conversations.conversation.exceptions.NoConversationException;
 import io.darbata.conversations.conversation.exceptions.UserNotFoundException;
@@ -10,14 +12,17 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ConversationService {
 
     private final ConversationRepository conversationRepository;
+    private final MessageClient messageClient;
 
-    public ConversationService(ConversationRepository conversationRepository) {
+    public ConversationService(ConversationRepository conversationRepository, MessageClient messageClient) {
         this.conversationRepository = conversationRepository;
+        this.messageClient = messageClient;
     }
 
     public List<ConversationDTO> fetchConversations(String userId, int limit, int offset) {
@@ -43,9 +48,15 @@ public class ConversationService {
         return users.stream().map(User::username).toList();
     }
 
-    public List<MessageDTO> fetchConversationMessages(String userId, Long conversationId, int limit, int offset) {
+    public FetchedMessagesDTO fetchConversationMessages(String userId, Long conversationId, String before, int limit) {
         // to be implemented with RestClient
-        return null;
+        if (!isUserInConversation(userId, conversationId))
+            throw new UserNotInConversationException("User not in conversation");
+
+        if (before == null) return messageClient.fetchConversationMessages(conversationId, limit);
+
+        return messageClient.fetchConversationMessages(conversationId, before, limit);
+
     }
 
     public ConversationDTO createConversation(String userId, List<String> participants) {

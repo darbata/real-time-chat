@@ -10,6 +10,7 @@ services:
       - POSTGRES_DATABASE=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=example # matches postgres
+      - MESSAGES_API_URI=http://dispatcher:8080/api
     depends_on:
       dynamodb:
         condition: service_healthy

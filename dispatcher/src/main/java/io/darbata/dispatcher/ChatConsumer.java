@@ -1,5 +1,6 @@
 package io.darbata.dispatcher;
 
+import io.darbata.dispatcher.models.IncomingChat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -9,9 +10,9 @@ import org.springframework.stereotype.Component;
 public class ChatConsumer {
 
     private final Logger log = LoggerFactory.getLogger(ChatConsumer.class);
-    private final ChatService chatService;
+    private final ChatAmqpService chatService;
 
-    ChatConsumer(ChatService chatService) {
+    ChatConsumer(ChatAmqpService chatService) {
         this.chatService = chatService;
     }
 

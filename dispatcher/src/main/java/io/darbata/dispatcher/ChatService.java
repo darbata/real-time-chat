@@ -1,55 +1,27 @@
 package io.darbata.dispatcher;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.AmqpTemplate;
+import io.darbata.dispatcher.models.Chat;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
-class ChatService {
+public class ChatService {
 
-    private static final Logger log = LoggerFactory.getLogger(ChatService.class);
-    private final AmqpTemplate template;
-    private final ConversationRepository conversationRepository;
     private final ChatRepository chatRepository;
 
-    ChatService(AmqpTemplate template, ConversationRepository conversationRepository, ChatRepository chatRepository) {
-        this.template = template;
-        this.conversationRepository = conversationRepository;
+    public ChatService(ChatRepository chatRepository) {
         this.chatRepository = chatRepository;
     }
 
-    public void consumeIncomingMessage(IncomingChat incomingChat) {
-        produceDispatchChatEvent(incomingChat);
-        produceRecentMessageEvent(incomingChat.conversationId(),  incomingChat.content());
+    public MessagesDTO fetchConversationMessages(Long conversationId, Optional<String> before, int limit) {
+        List<Chat> chats = chatRepository.fetchMessageByConversationId(Long.toString(conversationId), before, limit);
+        Optional<String> oldestChatId = Optional.empty();
+        if (!chats.isEmpty()) {
+            oldestChatId = Optional.of(chats.getLast().id());
+        }
+        return new MessagesDTO(chats, oldestChatId);
     }
 
-    private void produceRecentMessageEvent(Long conversationId, String content) {
-        RecentMessageEvent recentMessageEvent = new RecentMessageEvent(conversationId, content);
-        this.template.convertAndSend("recent-messages", recentMessageEvent);
-    }
-
-    private void produceDispatchChatEvent(IncomingChat incomingChat) {
-
-        String senderId = incomingChat.senderId();
-
-        List<String> recipients = conversationRepository.fetchRecipients(
-                incomingChat.conversationId(),
-                senderId
-        );
-        Chat chat = chatRepository.save(incomingChat);
-
-        DispatchChatEvent dispatchChatEvent = new DispatchChatEvent(
-                chat.conversationId(),
-                chat.id(),
-                senderId,
-                chat.content(),
-                recipients,
-                chat.sentAt()
-        );
-
-        this.template.convertAndSend("dispatch", dispatchChatEvent);
-    }
 }

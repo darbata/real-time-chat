@@ -1,9 +1,13 @@
 package io.darbata.dispatcher;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import io.darbata.dispatcher.models.Chat;
+import io.darbata.dispatcher.models.IncomingChat;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class ChatRepository {
@@ -26,6 +30,11 @@ public class ChatRepository {
         return chat;
 
     }
+
+    List<Chat> fetchMessageByConversationId(String conversationId, Optional<String> before, int limit) {
+        return store.get(conversationId, before, limit);
+    }
+
     private String createChatId() {
         return UlidCreator.getMonotonicUlid().toString();
     }

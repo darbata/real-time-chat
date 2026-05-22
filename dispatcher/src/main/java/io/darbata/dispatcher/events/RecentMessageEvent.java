@@ -1,4 +1,4 @@
-package io.darbata.dispatcher;
+package io.darbata.dispatcher.events;
 
 public record RecentMessageEvent (
         long conversationId,

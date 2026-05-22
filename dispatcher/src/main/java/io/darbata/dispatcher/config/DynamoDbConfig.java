@@ -1,4 +1,4 @@
-package io.darbata.dispatcher;
+package io.darbata.dispatcher.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

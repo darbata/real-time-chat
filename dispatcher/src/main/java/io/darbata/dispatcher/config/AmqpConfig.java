@@ -1,4 +1,4 @@
-package io.darbata.dispatcher;
+package io.darbata.dispatcher.config;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

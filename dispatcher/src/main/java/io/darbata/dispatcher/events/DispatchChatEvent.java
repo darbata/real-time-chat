@@ -1,4 +1,4 @@
-package io.darbata.dispatcher;
+package io.darbata.dispatcher.events;
 
 import java.time.Instant;
 import java.util.List;

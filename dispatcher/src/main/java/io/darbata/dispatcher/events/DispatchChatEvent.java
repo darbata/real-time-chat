@@ -10,16 +10,4 @@ public record DispatchChatEvent(
     String content,
     List<String> recipients,
     Instant sentAt
-) {
-    @Override
-    public String toString() {
-        return "DispatchMessageEvent{" +
-                "conversationId=" + conversationId +
-                ", id='" + chatId + '\'' +
-                ", senderId='" + senderId + '\'' +
-                ", content='" + content + '\'' +
-                ", recipients=" + recipients +
-                ", sentAt=" + sentAt +
-                '}';
-    }
-}
+) { }

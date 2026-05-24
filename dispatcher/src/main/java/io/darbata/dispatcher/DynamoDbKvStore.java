@@ -2,6 +2,7 @@ package io.darbata.dispatcher;
 
 import io.darbata.dispatcher.exceptions.ChatNotFoundException;
 import io.darbata.dispatcher.models.Chat;
+import io.darbata.dispatcher.models.ChatStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ public class DynamoDbKvStore implements KVStore {
         itemValues.put("content", AttributeValue.builder().s(chat.content()).build());
         itemValues.put("sender", AttributeValue.builder().s(chat.senderId()).build());
         itemValues.put("sentAt", AttributeValue.builder().s(chat.sentAt().toString()).build());
+        itemValues.put("status", AttributeValue.builder().s(chat.status().name()).build());
 
         PutItemRequest request = PutItemRequest.builder()
                 .tableName(tableName)
@@ -51,40 +53,6 @@ public class DynamoDbKvStore implements KVStore {
             throw new RuntimeException(e);
         }
 
-    }
-
-    @Override
-    public void update(String partitionKey, String sortKey, String content) {
-        Map<String, AttributeValue> key = Map.of(
-            "conversationId", AttributeValue.builder().s(partitionKey).build(),
-            "chatId", AttributeValue.builder().s(sortKey).build()
-        );
-
-        Map<String, AttributeValue> values = Map.of(
-            ":content", AttributeValue.builder().s(content).build()
-        );
-
-        // `content` is a DynamoDB reserved word, so alias it via #content
-        Map<String, String> names = Map.of("#content", "content");
-
-        UpdateItemRequest request = UpdateItemRequest.builder()
-                .tableName(tableName)
-                .key(key)
-                .updateExpression("SET #content = :content")
-                .conditionExpression("attribute_exists(chatId)")
-                .expressionAttributeNames(names)
-                .expressionAttributeValues(values)
-                .build();
-
-        try {
-            client.updateItem(request);
-            logger.info("Updated chat {} in conversation {}", sortKey, partitionKey);
-        } catch (ConditionalCheckFailedException e) {
-            throw new ChatNotFoundException("Chat not found");
-        } catch (Exception e) {
-            logger.error("Failed to update chat {} in conversation {}", sortKey, partitionKey, e);
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -112,7 +80,7 @@ public class DynamoDbKvStore implements KVStore {
     }
 
     @Override
-    public List<Chat> get(String partitionKey, Optional<String> beforeSortKey, int limit) {
+    public List<Chat> getMessages(String partitionKey, Optional<String> beforeSortKey, int limit) {
         Map<String, AttributeValue> values = new HashMap<>();
 
         // partition key
@@ -143,13 +111,51 @@ public class DynamoDbKvStore implements KVStore {
         }
     }
 
+    @Override
+    public Optional<Chat> getMessage(String partitionKey, String sortKey) {
+        Map<String, AttributeValue> key = Map.of(
+                "conversationId", AttributeValue.builder().s(partitionKey).build(),
+                "chatId",         AttributeValue.builder().s(sortKey).build()
+        );
+
+        GetItemRequest request = GetItemRequest.builder()
+                .tableName(tableName)
+                .key(key)
+                .build();
+
+        try {
+            GetItemResponse response = client.getItem(request);
+            return response.hasItem() ? Optional.of(toChat(response.item())) : Optional.empty();
+        } catch (DynamoDbException e) {
+            logger.error("Failed to get message {}/{}", partitionKey, sortKey, e);
+            throw new ChatNotFoundException("Chat not found");
+        }
+    }
+
+    @Override
+    public boolean exists(String partitionKey, String sortKey) {
+        Map<String, AttributeValue> key = Map.of(
+            "conversationId", AttributeValue.builder().s(partitionKey).build(),
+            "chatId", AttributeValue.builder().s(sortKey).build()
+        );
+
+        GetItemRequest request = GetItemRequest.builder()
+            .tableName(tableName)
+            .key(key)
+            .projectionExpression("chatId") // just need the one property
+            .build();
+        GetItemResponse response = client.getItem(request);
+        return response.hasItem();
+    }
+
     private Chat toChat(Map<String, AttributeValue> item) {
         return new Chat(
             item.get("chatId").s(),
             Long.parseLong(item.get("conversationId").s()),
             item.get("sender").s(),
             item.get("content").s(),
-            Instant.parse(item.get("sentAt").s())
+            Instant.parse(item.get("sentAt").s()),
+            ChatStatus.valueOf(item.get("status").s())
         );
     }
 

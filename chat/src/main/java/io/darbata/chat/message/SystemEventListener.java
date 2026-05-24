@@ -9,17 +9,19 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 
 @Component
-class DispatchMessageEventListener {
+class SystemEventListener {
 
     private final SimpMessagingTemplate template;
-    private final Logger log = LoggerFactory.getLogger(DispatchMessageEventListener.class);
+    private final Logger log = LoggerFactory.getLogger(SystemEventListener.class);
 
-    DispatchMessageEventListener(SimpMessagingTemplate template) {
+    SystemEventListener(SimpMessagingTemplate template) {
         this.template = template;
     }
 
-    @RabbitListener(queues = "dispatch")
+    @RabbitListener(queues = "chat.dispatcher")
     void consumeDispatchEvent(DispatchChatEvent event) {
+        // fans out sent messages
+        // also sends to the original sender of the message which would indicate 'delivered'
 
         try {
             log.info("Receive dispatch event: {}", event);
@@ -52,5 +54,15 @@ class DispatchMessageEventListener {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    @RabbitListener(queues = "chat.typing")
+    void consumeTypingEvent() {
+
+    }
+
+    @RabbitListener(queues = "chat.read")
+    void consumeReadEvent() {
+
     }
 }

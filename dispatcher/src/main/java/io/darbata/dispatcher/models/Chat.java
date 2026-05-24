@@ -7,5 +7,6 @@ public record Chat (
     long conversationId,
     String senderId,
     String content,
-    Instant sentAt
+    Instant sentAt,
+    ChatStatus status
 ) { }

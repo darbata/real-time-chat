@@ -7,7 +7,8 @@ import java.util.Optional;
 
 public interface KVStore {
     void put(String partitionKey, String sortKey, Chat value);
-    void update(String partitionKey, String sortKey, String content);
     void delete(String partitionKey, String sortKey);
-    List<Chat> get(String partitionKey, Optional<String> beforeSortKey, int limit);
+    List<Chat> getMessages(String partitionKey, Optional<String> beforeSortKey, int limit);
+    Optional<Chat> getMessage(String partitionKey, String sortKey);
+    boolean exists(String partitionKey, String sortKey);
 }

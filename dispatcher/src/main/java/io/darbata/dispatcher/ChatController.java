@@ -28,12 +28,12 @@ public class ChatController {
     }
 
     @PutMapping("/{conversationId}/messages/{messageId}")
-    public ResponseEntity<?> updateMessage (
+    public ResponseEntity<?> updateMessageContent (
         @PathVariable("conversationId") long conversationId,
         @PathVariable("messageId") String messageId,
         @RequestBody String updatedMessageContent
     ) {
-        chatService.updateMessage(conversationId, messageId, updatedMessageContent);
+        chatService.updateMessageContent(conversationId, messageId, updatedMessageContent);
         return ResponseEntity.noContent().build();
     }
 

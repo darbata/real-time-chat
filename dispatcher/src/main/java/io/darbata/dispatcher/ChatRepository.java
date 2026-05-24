@@ -3,7 +3,6 @@ package io.darbata.dispatcher;
 import com.github.f4b6a3.ulid.UlidCreator;
 import io.darbata.dispatcher.models.Chat;
 import io.darbata.dispatcher.models.ChatStatus;
-import io.darbata.dispatcher.models.IncomingChat;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -19,11 +18,10 @@ public class ChatRepository {
         this.store = store;
     }
 
-    public Chat save(IncomingChat incomingChat) {
-        String id = createChatId();
+    public Chat save(Long conversationId, String senderId, String content) {
 
-        Chat chat = new Chat(id, incomingChat.conversationId(), incomingChat.senderId(), incomingChat.content(),
-                Instant.now(), ChatStatus.DELIVERED);
+        String id = createChatId();
+        Chat chat = new Chat(id, conversationId, senderId, content, Instant.now(), ChatStatus.DELIVERED);
 
         store.put(
                 Long.toString(chat.conversationId()),

@@ -1,6 +1,6 @@
-package io.darbata.dispatcher.models;
+package io.darbata.chat.events;
 
-public record IncomingChat(
+public record UserSentChatEvent(
     long conversationId,
     String senderId,
     String content

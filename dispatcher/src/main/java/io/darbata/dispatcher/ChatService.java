@@ -2,10 +2,8 @@ package io.darbata.dispatcher;
 
 import io.darbata.dispatcher.exceptions.ChatNotFoundException;
 import io.darbata.dispatcher.models.Chat;
-import io.darbata.dispatcher.models.ChatStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,11 +25,27 @@ public class ChatService {
         return new MessagesDTO(chats, oldestChatId);
     }
 
-    public void updateMessage(String updaterId, long conversationId, String messageId, Chat updated) {
+    public void updateMessageContent(long conversationId, String messageId, String updatedMessageContent) {
         Chat chat = chatRepository.fetchMessage(Long.toString(conversationId), messageId)
                 .orElseThrow(() -> new ChatNotFoundException("Chat not found"));
 
-        if (chat.senderId().equals(updaterId)) throw new IllegalCallerException("User can't update this chat");
+
+        Chat updatedChat = new Chat(
+                chat.id(),
+                chat.conversationId(),
+                chat.senderId(),
+                updatedMessageContent,
+                chat.sentAt(),
+                chat.status()
+        );
+
+        chatRepository.update(conversationId, messageId, updatedChat);
+    }
+
+    public void updateMessage(long conversationId, String messageId, Chat updated) {
+        Chat chat = chatRepository.fetchMessage(Long.toString(conversationId), messageId)
+                .orElseThrow(() -> new ChatNotFoundException("Chat not found"));
+
 
         Chat updatedChat = new Chat(
             chat.id(),

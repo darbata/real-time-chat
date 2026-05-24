@@ -12,8 +12,6 @@ services:
       - POSTGRES_PASSWORD=example # matches postgres
       - MESSAGES_API_URI=http://dispatcher:8080/api
     depends_on:
-      dynamodb:
-        condition: service_healthy
       postgres:
         condition: service_healthy
 
@@ -50,7 +48,7 @@ services:
         condition: service_healthy
       broker-config-init:
         condition: service_completed_successfully
-      postgres:
+      dynamodb:
         condition: service_healthy
 
 

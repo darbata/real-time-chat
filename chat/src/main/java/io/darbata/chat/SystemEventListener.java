@@ -29,7 +29,7 @@ class SystemEventListener {
                 // cluster node delegation auto-handled by the config
                 template.convertAndSendToUser(
                     recipient,
-                    "/queue/chats/delivered",
+                    "/queue/chats.delivered",
                     event
                 );
             }
@@ -43,7 +43,7 @@ class SystemEventListener {
         for (String recipient : event.recipients()) {
             template.convertAndSendToUser(
                 recipient,
-                "/queue/chats/typing",
+                "/queue/chats.typing",
                 event
             );
         }
@@ -54,7 +54,7 @@ class SystemEventListener {
         for (String recipient : event.recipients()) {
             template.convertAndSendToUser(
                 recipient,
-                "/queue/chats/read",
+                "/queue/chats.read",
                 event
             );
         }

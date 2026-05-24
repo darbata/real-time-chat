@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public record MessagesDTO (
     List<Chat> chats,
-    Optional<String> next
+    Optional<String> before
 ) {}

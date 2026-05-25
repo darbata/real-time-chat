@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: broker-init
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: curl
+          image: curlimages/curl:8.10.1
+          volumeMounts:
+            - {name: definitions, mountPath: /definitions.json, subPath: definitions.json}
+          command: ["sh", "-c"]
+          args:
+            - |
+              for i in $(seq 1 60); do
+                if curl -fsS -o /dev/null -u guest:guest http://broker:15672/api/overview; then
+                  echo "broker is up"
+                  break
+                fi
+                echo "waiting for broker... ($i)"
+                sleep 2
+              done
+
+              curl -fsS -u guest:guest \
+                -H "Content-Type: application/json" \
+                -X POST \
+                --data @/definitions.json \
+                http://broker:15672/api/definitions
+      volumes:
+        - name: definitions
+          configMap:
+            name: broker-definitions

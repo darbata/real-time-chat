@@ -2,27 +2,28 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: conversations
-  name: conversations
+    app: chat
+  name: chat
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: conversations
+      app: chat
   template:
     metadata:
       labels:
-        app: conversations
+        app: chat
     spec:
       containers:
-      - image: real-time-chat-conversations
+      - image: realtime/chat
         imagePullPolicy: IfNotPresent
-        name: real-time-chat-conversations
+        name: real-time-chat-chat
+        ports:
+          - containerPort: 8080
         envFrom:
           - configMapRef:
-              name: conversations-config
-          - secretRef:
-              name: postgres-secret
+              name: chat-config
+
         resources:
           requests:
             cpu: 250m

@@ -15,7 +15,7 @@ spec:
         app: dispatcher
     spec:
       containers:
-      - image: real-time-chat-dispatcher
+      - image: realtime/dispatcher
         imagePullPolicy: IfNotPresent
         name: real-time-chat-dispatcher
         ports:

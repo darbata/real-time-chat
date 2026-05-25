@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-db
+data:
+  init-tables.sql: |
+    CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY 
+    );
+
+    CREATE TABLE IF NOT EXISTS conversations (
+        id BIGSERIAL PRIMARY KEY 
+    );
+
+    CREATE TABLE IF NOT EXISTS user_conversations (
+        user_id TEXT NOT NULL REFERENCES users(id),
+        conversation_id BIGINT NOT NULL REFERENCES conversations(id),
+        joined_at TIMESTAMP DEFAULT NOW(),
+        PRIMARY KEY (user_id, conversation_id)
+    );
+
+    CREATE VIEW conversations_with_participants AS
+    SELECT
+        conversations.id AS conversation_id,
+        array_agg(users.id) AS participant_ids
+    FROM conversations
+    JOIN user_conversations ON user_conversations.conversation_id = conversations.id
+    JOIN users on users.id = user_conversations.user_id
+    GROUP BY conversations.id;
+
+    INSERT INTO users (id) VALUES
+    ('luffy'), ('sanji'), ('zoro'), ('chopper'),
+    ('nami'), ('robin'), ('ussop');
+
+    INSERT INTO conversations DEFAULT VALUES;
+    INSERT INTO conversations DEFAULT VALUES;
+    INSERT INTO conversations DEFAULT VALUES;
+
+    INSERT INTO user_conversations (user_id, conversation_id) VALUES
+    ('luffy', 1),
+    ('sanji', 1);
+     
+    INSERT INTO user_conversations (user_id, conversation_id) VALUES
+    ('luffy', 2),
+    ('zoro', 2);
+     
+    INSERT INTO user_conversations (user_id, conversation_id) VALUES
+    ('luffy', 3),
+    ('nami', 3),
+    ('robin', 3),
+    ('chopper', 3);

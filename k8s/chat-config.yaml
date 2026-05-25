@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chat-config
+data:
+  RABBITMQ_HOST: broker
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_STOMP_RELAY_PORT: "61613"
+  JAVA_OPTS: -XX:MaxRAMPercentage=75.0

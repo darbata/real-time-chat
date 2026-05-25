@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: broker
+spec:
+  serviceName: broker
+  selector:
+    matchLabels:
+      app: broker
+  template:
+    metadata:
+      labels:
+        app: broker
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:4.3-rc-management
+          ports:
+            - {name: amqp, containerPort: 5672}
+            - {name: stomp, containerPort: 61613}
+            - {name: management, containerPort: 15672}
+          volumeMounts:
+            - {name: config, mountPath: /etc/rabbitmq/enabled_plugins, subPath: enabled_plugins}
+            - {name: config, mountPath: /etc/rabbitmq/rabbitmq.conf, subPath: rabbitmq.conf}
+            - {name: config, mountPath: /etc/rabbitmq/definitions.json, subPath: definitions.json}
+            - {name: data, mountPath: /var/lib/rabbitmq}
+
+          startupProbe:
+            exec:
+              command: ["rabbitmq-diagnostics", "check_port_connectivity"]
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command: ["rabbitmq-diagnostics", "check_port_connectivity"]
+            periodSeconds: 10
+            timeoutSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["rabbitmq-diagnostics", "status"]
+            periodSeconds: 30
+            timeoutSeconds: 10
+
+      volumes:
+        - name: config
+          configMap:
+            name: broker-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

@@ -1,14 +1,14 @@
-package io.darbata.conversations.conversation;
+package io.darbata.conversations;
 
-import io.darbata.conversations.conversation.dto.ConversationDTO;
-import io.darbata.conversations.conversation.dto.CreateConversationRequestDTO;
-import io.darbata.conversations.conversation.dto.FetchedMessagesDTO;
+import io.darbata.conversations.dto.ConversationDTO;
+import io.darbata.conversations.dto.CreateConversationRequestDTO;
+import io.darbata.conversations.dto.FetchedMessagesDTO;
+import io.darbata.conversations.services.ConversationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/conversations")

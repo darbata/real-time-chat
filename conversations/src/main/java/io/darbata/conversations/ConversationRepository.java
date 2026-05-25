@@ -1,7 +1,7 @@
-package io.darbata.conversations.conversation;
+package io.darbata.conversations;
 
-import io.darbata.conversations.conversation.dto.ConversationDTO;
-import io.darbata.conversations.conversation.models.User;
+import io.darbata.conversations.dto.ConversationDTO;
+import io.darbata.conversations.models.User;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-class ConversationRepository {
+public class ConversationRepository {
 
     private final JdbcClient client;
 
@@ -18,7 +18,7 @@ class ConversationRepository {
         this.client = client;
     }
 
-    List<ConversationDTO> findRecentConversationsWithParticipants(String userId, int limit, int offset) {
+    public List<ConversationDTO> findRecentConversationsWithParticipants(String userId, int limit, int offset) {
         String query = """
             SELECT * FROM conversations_with_participants
             WHERE :userId = ANY(participant_ids)

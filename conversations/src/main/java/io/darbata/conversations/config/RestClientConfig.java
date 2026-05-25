@@ -1,4 +1,4 @@
-package io.darbata.conversations.conversation.config;
+package io.darbata.conversations.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

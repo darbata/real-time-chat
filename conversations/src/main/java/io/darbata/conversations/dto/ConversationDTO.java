@@ -1,6 +1,6 @@
-package io.darbata.conversations.conversation.dto;
+package io.darbata.conversations.dto;
 
-import io.darbata.conversations.conversation.models.User;
+import io.darbata.conversations.models.User;
 
 import java.util.List;
 

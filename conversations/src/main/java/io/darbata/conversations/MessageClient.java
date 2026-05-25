@@ -1,7 +1,7 @@
 package io.darbata.conversations;
 
-import io.darbata.conversations.conversation.dto.FetchedMessagesDTO;
-import io.darbata.conversations.conversation.exceptions.ChatNotFoundException;
+import io.darbata.conversations.dto.FetchedMessagesDTO;
+import io.darbata.conversations.exceptions.ChatNotFoundException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;

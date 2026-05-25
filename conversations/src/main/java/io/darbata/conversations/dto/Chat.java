@@ -1,4 +1,4 @@
-package io.darbata.conversations.conversation.dto;
+package io.darbata.conversations.dto;
 
 import java.time.Instant;
 

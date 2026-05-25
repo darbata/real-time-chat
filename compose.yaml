@@ -11,7 +11,13 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=example # matches postgres
       - MESSAGES_API_URI=http://dispatcher:8080/api
+      - RABBITMQ_HOST=broker
+      - RABBITMQ_PORT=5672
     depends_on:
+      broker:
+        condition: service_healthy
+      broker-config-init:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
 

@@ -1,12 +1,14 @@
-package io.darbata.conversations.conversation;
+package io.darbata.conversations.services;
 
+import io.darbata.conversations.ConversationRepository;
 import io.darbata.conversations.MessageClient;
-import io.darbata.conversations.conversation.dto.ConversationDTO;
-import io.darbata.conversations.conversation.dto.FetchedMessagesDTO;
-import io.darbata.conversations.conversation.exceptions.NoConversationException;
-import io.darbata.conversations.conversation.exceptions.UserNotFoundException;
-import io.darbata.conversations.conversation.exceptions.UserNotInConversationException;
-import io.darbata.conversations.conversation.models.User;
+import io.darbata.conversations.dto.ConversationDTO;
+import io.darbata.conversations.dto.FetchedMessagesDTO;
+import io.darbata.conversations.exceptions.NoConversationException;
+import io.darbata.conversations.exceptions.UserNotFoundException;
+import io.darbata.conversations.exceptions.UserNotInConversationException;
+import io.darbata.conversations.models.User;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +19,12 @@ public class ConversationService {
 
     private final ConversationRepository conversationRepository;
     private final MessageClient messageClient;
+    private final AmqpService amqpService;
 
-    public ConversationService(ConversationRepository conversationRepository, MessageClient messageClient) {
+    public ConversationService(ConversationRepository conversationRepository, MessageClient messageClient, AmqpService amqpService) {
         this.conversationRepository = conversationRepository;
         this.messageClient = messageClient;
+        this.amqpService = amqpService;
     }
 
     public List<ConversationDTO> fetchConversations(String userId, int limit, int offset) {
@@ -62,7 +66,9 @@ public class ConversationService {
         if (!participants.contains(userId)) participants.add(userId);
 
         try {
-            return conversationRepository.createConversationWithParticipants(participants);
+            ConversationDTO conversation = conversationRepository.createConversationWithParticipants(participants);
+            amqpService.produceCreateConversationEvent(userId, conversation);
+            return conversation;
         } catch (DataIntegrityViolationException e) {
             throw new UserNotFoundException("One or more of the participantIds are invalid");
         }

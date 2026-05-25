@@ -1,9 +1,9 @@
-package io.darbata.conversations.conversation;
+package io.darbata.conversations;
 
-import io.darbata.conversations.conversation.exceptions.ChatNotFoundException;
-import io.darbata.conversations.conversation.exceptions.NoConversationException;
-import io.darbata.conversations.conversation.exceptions.UserNotFoundException;
-import io.darbata.conversations.conversation.exceptions.UserNotInConversationException;
+import io.darbata.conversations.exceptions.ChatNotFoundException;
+import io.darbata.conversations.exceptions.NoConversationException;
+import io.darbata.conversations.exceptions.UserNotFoundException;
+import io.darbata.conversations.exceptions.UserNotInConversationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

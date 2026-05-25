@@ -1,4 +1,4 @@
-package io.darbata.conversations.conversation.exceptions;
+package io.darbata.conversations.exceptions;
 
 public class ChatNotFoundException extends RuntimeException {
     public ChatNotFoundException(String message) {}

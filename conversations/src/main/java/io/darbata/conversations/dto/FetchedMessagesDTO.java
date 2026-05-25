@@ -1,4 +1,4 @@
-package io.darbata.conversations.conversation.dto;
+package io.darbata.conversations.dto;
 
 import java.util.List;
 import java.util.Optional;

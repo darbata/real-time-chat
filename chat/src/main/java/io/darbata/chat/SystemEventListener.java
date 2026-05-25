@@ -1,5 +1,6 @@
 package io.darbata.chat;
 
+import io.darbata.chat.events.CreateConversationEvent;
 import io.darbata.chat.events.DeliveredChatEvent;
 import io.darbata.chat.events.DispatchUserReadChatEvent;
 import io.darbata.chat.events.DispatchUserStartedTypingEvent;
@@ -21,20 +22,13 @@ class SystemEventListener {
 
     @RabbitListener(queues = "chat.delivered")
     void consumeDispatchEvent(DeliveredChatEvent event) {
-        // fans out sent messages
-        // also sends to the original sender of the message which would indicate 'delivered'
-
-        try {
-            for (String recipient : event.recipients()) {
-                // cluster node delegation auto-handled by the config
-                template.convertAndSendToUser(
-                    recipient,
-                    "/queue/chats.delivered",
-                    event
-                );
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
+        for (String recipient : event.recipients()) {
+            // cluster node delegation auto-handled by the config
+            template.convertAndSendToUser(
+                recipient,
+                "/queue/chats.delivered",
+                event
+            );
         }
     }
 
@@ -55,6 +49,17 @@ class SystemEventListener {
             template.convertAndSendToUser(
                 recipient,
                 "/queue/chats.read",
+                event
+            );
+        }
+    }
+    
+    @RabbitListener(queues = "conversation.created")
+    void consumeCreateConversationEvent(CreateConversationEvent event) {
+        for (String recipient : event.recipients()) {
+            template.convertAndSendToUser(
+                recipient,
+                "/queue/conversations.created",
                 event
             );
         }

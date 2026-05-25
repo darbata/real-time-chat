@@ -59,7 +59,7 @@ class SystemEventListener {
         for (String recipient : event.recipients()) {
             template.convertAndSendToUser(
                 recipient,
-                "/queue/conversations.created",
+                "/queue/conversation.created",
                 event
             );
         }

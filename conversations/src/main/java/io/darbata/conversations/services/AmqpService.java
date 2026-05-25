@@ -20,7 +20,6 @@ public class AmqpService {
     public void produceCreateConversationEvent(String creatorId, ConversationDTO conversation) {
         List<String> recipients = conversation.participants().stream()
                 .map(User::username)
-                .filter(username -> !username.equals(creatorId))
                 .toList();
         var event = new CreateConversationEvent(conversation, recipients);
         this.template.convertAndSend("conversation.created", event);

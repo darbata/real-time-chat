@@ -6,6 +6,7 @@
     { "name": "chat.delivered", "vhost": "/", "durable": true, "arguments": {"x-queue-type": "classic", "x-dead-letter-exchange": "", "x-dead-letter-routing-key": "dead"}},
     { "name": "chat.read.out", "vhost": "/", "durable": true, "arguments": {"x-queue-type": "classic", "x-dead-letter-exchange": "", "x-dead-letter-routing-key": "dead"}},
     { "name": "chat.typing.out", "vhost": "/", "durable": true, "arguments": {"x-queue-type": "classic", "x-dead-letter-exchange": "", "x-dead-letter-routing-key": "dead"}},
+    { "name": "conversation.created", "vhost": "/", "durable": true, "arguments": {"x-queue-type": "classic", "x-dead-letter-exchange": "", "x-dead-letter-routing-key": "dead"}},
     { "name": "dead", "vhost": "/", "durable": true, "arguments": {"x-queue-type": "classic"}}
   ]
 }

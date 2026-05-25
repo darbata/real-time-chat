@@ -2,6 +2,7 @@ package io.darbata.conversations.services;
 
 import io.darbata.conversations.ConversationRepository;
 import io.darbata.conversations.MessageClient;
+import io.darbata.conversations.dto.Chat;
 import io.darbata.conversations.dto.ConversationDTO;
 import io.darbata.conversations.dto.FetchedMessagesDTO;
 import io.darbata.conversations.exceptions.NoConversationException;
@@ -96,6 +97,12 @@ public class ConversationService {
         messageClient.deleteMessage(conversationId, messageId);
     }
 
+    public Chat createMessage(String senderId, long conversationId, String content) {
+        if (!isUserInConversation(senderId, conversationId))
+            throw new UserNotInConversationException("User not in conversation");
+
+        return messageClient.createMessage(senderId, conversationId, content);
+    }
     private boolean isUserInConversation(String userId, Long conversationId) {
         return this.conversationRepository.isUserInConversation(conversationId, userId);
     }

@@ -11,9 +11,11 @@ import java.util.Optional;
 public class ChatService {
 
     private final ChatRepository chatRepository;
+    private final ChatAmqpService chatAmqpService;
 
-    public ChatService(ChatRepository chatRepository) {
+    public ChatService(ChatRepository chatRepository, ChatAmqpService chatAmqpService) {
         this.chatRepository = chatRepository;
+        this.chatAmqpService = chatAmqpService;
     }
 
     public MessagesDTO fetchConversationMessages(Long conversationId, Optional<String> before, int limit) {
@@ -42,23 +44,13 @@ public class ChatService {
         chatRepository.update(conversationId, messageId, updatedChat);
     }
 
-    public void updateMessage(long conversationId, String messageId, Chat updated) {
-        Chat chat = chatRepository.fetchMessage(Long.toString(conversationId), messageId)
-                .orElseThrow(() -> new ChatNotFoundException("Chat not found"));
-
-
-        Chat updatedChat = new Chat(
-            chat.id(),
-            chat.conversationId(),
-            chat.senderId(),
-            updated.content(),
-            chat.sentAt(),
-            updated.status()
-        );
-
-        chatRepository.update(conversationId, messageId, updatedChat);
-
+    public Chat createChat(long conversationId, String senderId, String content) {
+        Chat chat = chatRepository.save(conversationId, senderId, content);
+        chatAmqpService.produceDeliveredChatEvent(chat);
+        return chat;
     }
+
+
 
     public void deleteMessage(long conversationId, String messageId) {
         chatRepository.deleteMessage(conversationId, messageId);

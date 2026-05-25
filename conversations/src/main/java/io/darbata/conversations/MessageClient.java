@@ -1,5 +1,6 @@
 package io.darbata.conversations;
 
+import io.darbata.conversations.dto.Chat;
 import io.darbata.conversations.dto.FetchedMessagesDTO;
 import io.darbata.conversations.exceptions.ChatNotFoundException;
 import org.springframework.http.HttpStatusCode;
@@ -64,4 +65,20 @@ public class MessageClient {
             })
             .toBodilessEntity();
     }
+
+    public Chat createMessage(String senderId, long conversationId, String content) {
+        return client
+            .post()
+            .uri(uriBuilder -> uriBuilder
+                    .path("/conversations/{conversationId}/messages")
+                    .build(conversationId))
+                .body(content)
+                .header("X-User-Id", senderId)
+            .retrieve()
+            .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
+                throw new ChatNotFoundException("Chat not found");
+            })
+            .body(Chat.class);
+    }
+
 }

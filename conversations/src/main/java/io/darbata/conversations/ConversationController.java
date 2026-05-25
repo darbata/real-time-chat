@@ -1,8 +1,6 @@
 package io.darbata.conversations;
 
-import io.darbata.conversations.dto.ConversationDTO;
-import io.darbata.conversations.dto.CreateConversationRequestDTO;
-import io.darbata.conversations.dto.FetchedMessagesDTO;
+import io.darbata.conversations.dto.*;
 import io.darbata.conversations.services.ConversationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -73,6 +71,16 @@ class ConversationController {
         return ResponseEntity
             .created(URI.create("api/conversations/" + conversation.id()))
             .body(conversation);
+    }
+
+    @PostMapping("/{conversationId}/messages")
+    ResponseEntity<Chat> createMessage (
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable Long conversationId,
+            @RequestBody String content
+    ) {
+        Chat chat = conversationService.createMessage(userId, conversationId, content);
+        return ResponseEntity.ok(chat);
     }
 
     @DeleteMapping("/{conversationId}/leave")

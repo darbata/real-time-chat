@@ -1,5 +1,6 @@
 package io.darbata.dispatcher;
 
+import io.darbata.dispatcher.models.Chat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,5 +55,17 @@ public class ChatController {
         List<String> participants = conversationService.fetchConversationParticipants(userId, conversationId);
         return ResponseEntity.ok(participants);
     }
+
+    @PostMapping("/{conversationId}/messages")
+    public ResponseEntity<Chat> createMessage (
+        @RequestHeader("X-User-Id") String senderId,
+        @PathVariable("conversationId") long conversationId,
+        @RequestBody String content
+    ) {
+        return ResponseEntity.ok(
+            chatService.createChat(conversationId, senderId, content)
+        );
+    }
+
 
 }

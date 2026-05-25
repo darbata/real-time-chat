@@ -1,7 +1,7 @@
 services:
 
   conversations:
-    build: ./conversations/.
+    image: realtime/conversations
     ports:
       - 8080:8080
     environment:
@@ -22,7 +22,7 @@ services:
         condition: service_healthy
 
   chat:
-    build: ./chat/.
+    image: realtime/chat
     ports:
       - 8081:8080
     environment:
@@ -36,7 +36,7 @@ services:
         condition: service_completed_successfully
 
   dispatcher:
-    build: ./dispatcher/.
+    image: realtime/dispatcher
     ports:
       - 8082:8080
     environment:

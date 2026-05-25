@@ -29,7 +29,8 @@ class ChatAmqpService {
 
     public void consumeUserSentChatEvent(UserSentChatEvent event) {
         // fan out
-        produceDeliveredChatEvent(event.conversationId(), event.senderId(), event.content());
+        Chat chat = chatRepository.save(event.conversationId(), event.senderId(), event.content());
+        produceDeliveredChatEvent(chat);
     }
 
     public void consumeUserReadChatEvent(UserReadChatEvent event) {
@@ -55,16 +56,12 @@ class ChatAmqpService {
         this.template.convertAndSend("chat.typing.out", dispatch);
     }
 
-    private void produceDeliveredChatEvent(Long conversationId, String senderId, String content) {
+    public void produceDeliveredChatEvent(Chat chat) {
 
-        // sends to all participants (including sender)
-        // allows the sender to perform the 'sent'
         List<String> recipients = conversationService.fetchConversationParticipants(
-                senderId,
-                conversationId
+                chat.senderId(),
+                chat.conversationId()
         );
-
-        Chat chat = chatRepository.save(conversationId, senderId, content);
 
         DeliveredChatEvent event = new DeliveredChatEvent(chat, recipients);
 

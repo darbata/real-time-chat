@@ -1,0 +1,18 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: chat-scaler
+spec:
+  scaleTargetRef:
+    name: chat
+  pollingInterval: 15
+  cooldownPeriod: 300          
+  minReplicaCount: 2
+  maxReplicaCount: 8
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://chat:8081/actuator/prometheus
+        metricName: websocket_active_sessions
+        query: sum(websocket_active_sessions)   
+        threshold: "5"                         

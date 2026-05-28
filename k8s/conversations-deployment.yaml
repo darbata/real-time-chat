@@ -15,7 +15,7 @@ spec:
         app: conversations
     spec:
       containers:
-      - image: realtime/conversations
+      - image: darbata1/rtc-conversations:latest
         imagePullPolicy: IfNotPresent
         name: real-time-chat-conversations
         envFrom:

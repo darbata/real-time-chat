@@ -2,7 +2,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default
-  namespace: real-time-chat
 spec:
   podSelector: {}
   policyTypes:
@@ -11,27 +10,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: gmp-scrape
-  namespace: real-time-chat
-spec:
-  podSelector:
-    matchExpressions:
-      - key: app
-        operator: In
-        values: [chat, conversations, dispatcher]
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: gmp-system
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
   name: conversations-to-postgres
-  namespace: real-time-chat
 spec:
   podSelector: 
     matchLabels:
@@ -48,7 +27,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: dispatcher-to-dynamodb
-  namespace: real-time-chat
 spec:
   podSelector: 
     matchLabels:
@@ -65,7 +43,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: broker-ingress
-  namespace: real-time-chat
 spec:
   podSelector: 
     matchLabels:
@@ -94,7 +71,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: chat-ingress
-  namespace: real-time-chat
 spec:
   podSelector: 
     matchLabels:
@@ -114,7 +90,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: conversations-ingress
-  namespace: real-time-chat
 spec:
   podSelector: 
     matchLabels:
@@ -138,7 +113,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: dispatcher-ingress
-  namespace: real-time-chat
 spec:
   podSelector: 
     matchLabels:

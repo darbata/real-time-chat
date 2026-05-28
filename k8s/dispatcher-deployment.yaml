@@ -6,6 +6,11 @@ metadata:
   name: dispatcher
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 2
   selector:
     matchLabels:
       app: dispatcher
@@ -15,7 +20,7 @@ spec:
         app: dispatcher
     spec:
       containers:
-      - image: realtime/dispatcher
+      - image: darbata1/rtc-dispatcher:latest
         imagePullPolicy: IfNotPresent
         name: real-time-chat-dispatcher
         ports:

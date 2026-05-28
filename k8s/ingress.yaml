@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+        - path: /api/conversations
+          pathType: Prefix
+          backend:
+            service:
+              name: conversations
+              port:
+                number: 8080
+        - path: /ws
+          pathType: Prefix
+          backend:
+            service: 
+              name: chat
+              port:
+                number: 8081

@@ -16,7 +16,7 @@ spec:
       containers:
         - name: dynamodb
           image: amazon/dynamodb-local:latest
-          args: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "/data"]
+          args: ["-jar", "DynamoDBLocal.jar", "-inMemory"]
           ports:
             - containerPort: 8000
           volumeMounts:

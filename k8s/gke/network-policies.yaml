@@ -10,7 +10,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: conversations-to-postgres
+  name: postgres-ingress
 spec:
   podSelector: 
     matchLabels:
@@ -22,11 +22,14 @@ spec:
       - podSelector:
           matchLabels:
             app: conversations
+      ports:
+      - protocol: TCP
+        port: 5432
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: dispatcher-to-dynamodb
+  name: dynamodb-ingress
 spec:
   podSelector: 
     matchLabels:
@@ -38,6 +41,9 @@ spec:
       - podSelector:
           matchLabels:
             app: dispatcher
+      ports:
+      - protocol: TCP
+        port: 8000
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -54,18 +60,23 @@ spec:
       - podSelector:
           matchLabels:
             app: conversations
+      ports:
+      - protocol: TCP
+        port: 5672
     - from:
       - podSelector:
           matchLabels:
             app: dispatcher
+      ports:
+      - protocol: TCP
+        port: 5672
     - from:
       - podSelector:
           matchLabels:
             app: chat
-    - from:
-      - podSelector:
-          matchLabels:
-            job: broker-init
+      ports:
+      - protocol: TCP
+        port: 5672
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -85,6 +96,9 @@ spec:
           podSelector:
             matchLabels:
               app.kubernetes.io/name: ingress-nginx
+      ports:
+      - protocol: TCP
+        port: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -104,10 +118,16 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: ingress-nginx
+      ports:
+      - protocol: TCP
+        port: 8080
     - from:
         - podSelector:
             matchLabels:
               app: dispatcher
+      ports:
+      - protocol: TCP
+        port: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -124,3 +144,6 @@ spec:
         - podSelector:
             matchLabels:
               app: conversations
+      ports:
+      - protocol: TCP
+        port: 8080

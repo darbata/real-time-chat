@@ -5,6 +5,8 @@ metadata:
 data:
   RABBITMQ_HOST: broker
   RABBITMQ_PORT: "5672"
+  RABBITMQ_USERNAME: guest
+  RABBITMQ_PASSWORD: guest
   DYNAMODB_HOST: dynamodb
   DYNAMODB_PORT: "8000"
   DYNAMODB_TABLE: Conversations

@@ -4,7 +4,7 @@ metadata:
   name: rabbitmq-connection
 type: Opaque
 stringData:
-  HOST: "http://guest:guest@broker:15672/"
+    HOST: "http://guest:guest@broker.default.svc.cluster.local:15672/"
 ---
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
@@ -25,14 +25,14 @@ spec:
     name: dispatcher
   pollingInterval: 15
   cooldownPeriod: 120
-  minReplicaCount: 2
-  maxReplicaCount: 10 
+  minReplicaCount: 0
+  maxReplicaCount: 8 
   triggers:
     - type: rabbitmq
       metadata:
         protocol: http
         queueName: chat.sent
         mode: QueueLength
-        value: "20"
+        value: "5"
       authenticationRef:
         name: rabbitmq-authentication

@@ -5,7 +5,6 @@ metadata:
     app: chat
   name: chat
 spec:
-  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:

@@ -22,28 +22,17 @@ spec:
           volumeMounts:
             - {name: config, mountPath: /etc/rabbitmq/enabled_plugins, subPath: enabled_plugins}
             - {name: config, mountPath: /etc/rabbitmq/rabbitmq.conf, subPath: rabbitmq.conf}
+            - {name: definitions, mountPath: /etc/rabbitmq/definitions.json, subPath: definitions.json}
             - {name: data,   mountPath: /var/lib/rabbitmq}
-
-          startupProbe:
-            exec:
-              command: ["rabbitmq-diagnostics", "check_port_connectivity"]
-            periodSeconds: 10
-            failureThreshold: 30
-          readinessProbe:
-            exec:
-              command: ["rabbitmq-diagnostics", "check_port_connectivity"]
-            periodSeconds: 10
-            timeoutSeconds: 10
-          livenessProbe:
-            exec:
-              command: ["rabbitmq-diagnostics", "status"]
-            periodSeconds: 30
-            timeoutSeconds: 10
 
       volumes:
         - name: config
           configMap:
             name: broker-config
+
+        - name: definitions
+          configMap:
+            name: broker-definitions
   volumeClaimTemplates:
     - metadata:
         name: data

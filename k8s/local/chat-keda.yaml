@@ -1,0 +1,17 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: chat-scaler
+spec:
+  scaleTargetRef:
+    name: chat
+  minReplicaCount: 1
+  maxReplicaCount: 8
+  pollingInterval: 15
+  triggers:
+    - type: metrics-api
+      metadata:
+        url: "http://chat.default.svc.cluster.local:8081/actuator/prometheus"
+        format: prometheus
+        valueLocation: "sessions"
+        targetValue: "2"

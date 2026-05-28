@@ -1,79 +1,49 @@
-import ConversationsSidebar from "./ConversationsSidebar.tsx";
-import ConversationMessages from "./ConversationMessages.tsx";
-import type {ConversationMetadata} from "./ConversationMetadata.tsx";
-import type {UserMessage} from "./UserMessage.tsx";
-import {useState} from "react";
-
-const conversations: ConversationMetadata[] = [
-    {
-        "id": 1,
-        "participants": [
-            { "id": "alice_wonder" },
-            { "id": "bob_builder" }
-        ],
-        "lastMessage": "See you tomorrow!",
-        "lastMessageAt": "2026-04-26T08:30:00.000Z"
-    },
-    {
-        "id": 2,
-        "participants": [
-            { "id": "charlie_dev" },
-            { "id": "diana_prince" }
-        ],
-        "lastMessage": "Can you review my PR?",
-        "lastMessageAt": "2026-04-25T21:15:00.000Z"
-    },
-    {
-        "id": 3,
-        "participants": [
-            { "id": "alice_wonder" },
-            { "id": "evan_codes" },
-            { "id": "fiona_sharp" }
-        ],
-        "lastMessage": "Sprint planning is at 10am.",
-        "lastMessageAt": "2026-04-25T18:45:00.000Z"
-    },
-    {
-        "id": 4,
-        "participants": [
-            { "id": "george_rx" },
-            { "id": "hannah_lee" }
-        ],
-        "lastMessage": "Haha yeah that was wild 😂",
-        "lastMessageAt": "2026-04-24T14:00:00.000Z"
-    },
-    {
-        "id": 5,
-        "participants": [
-            { "id": "ivan_storm" },
-            { "id": "julia_fn" },
-            { "id": "kyle_bytes" },
-            { "id": "laura_q" }
-        ],
-        "lastMessage": "Anyone free for lunch?",
-        "lastMessageAt": "2026-04-24T11:30:00.000Z"
-    }
-];
-
-const messages: UserMessage[] = [
-    { id: "chat-1", senderId: "alice_wonder", content: "Hey Bob, are we still on for tomorrow?" },
-    { id: "chat-2", senderId: "bob_builder", content: "Yeah for sure! What time works for you?" },
-    { id: "chat-3", senderId: "alice_wonder", content: "How about 10am at the usual spot?" },
-    { id: "chat-4", senderId: "bob_builder", content: "Perfect, I'll be there. Should I bring anything?" },
-    { id: "chat-5", senderId: "alice_wonder", content: "Just yourself haha, I've got everything sorted" },
-    { id: "chat-6", senderId: "bob_builder", content: "Sounds good 👍 See you tomorrow!" },
-    { id: "chat-7", senderId: "alice_wonder", content: "See you tomorrow!" },
-];
-
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { useUser } from "../UserContext";
+import { useChatStore } from "../state/ChatStore";
+import ConversationsSidebar from "./ConversationsSidebar";
+import ConversationMessages from "./ConversationMessages";
+import EmptyConversationPane from "./EmptyConversationPane";
 
 export default function ChatPage() {
+    const { username } = useUser();
+    const navigate = useNavigate();
+    const { conversations } = useChatStore();
 
-    const [selectedConversationId, setSelectedConversationId] = useState(0);
+    const [selectedConversationId, setSelectedConversationId] = useState<
+        number | null
+    >(null);
+    const [logOpen, setLogOpen] = useState(false);
+
+    // Bounce un-authed visitors back to /
+    useEffect(() => {
+        if (!username) navigate("/");
+    }, [username, navigate]);
+
+    if (!username) return null;
+
+    const selected =
+        selectedConversationId != null
+            ? conversations.find((c) => c.id === selectedConversationId) ?? null
+            : null;
 
     return (
         <main className="bg-background-400 w-full h-full flex">
-            <ConversationsSidebar conversations={conversations} selectedConversationId={selectedConversationId} setSelectedConversationId={setSelectedConversationId}  />
-            <ConversationMessages conversation={conversations[0]} messages={messages} />
+            <ConversationsSidebar
+                selectedConversationId={selectedConversationId}
+                setSelectedConversationId={setSelectedConversationId}
+                onToggleLog={() => setLogOpen((v) => !v)}
+                logOpen={logOpen}
+            />
+            {selected ? (
+                <ConversationMessages
+                    key={selected.id}
+                    conversation={selected}
+                />
+            ) : (
+                <EmptyConversationPane />
+            )}
         </main>
-    )
+    );
 }

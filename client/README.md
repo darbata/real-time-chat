@@ -1,73 +1,98 @@
-# React + TypeScript + Vite
+# darbata — visual test client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React client for exercising every public-facing interface of the chat /
+dispatcher / conversations services from a browser. Designed for
+side-by-side two-browser testing where each window is a different user.
 
-Currently, two official plugins are available:
+## What it covers
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Conversations REST (`conversations` service)**
 
-## React Compiler
+- `GET    /api/conversations` — list (sidebar)
+- `GET    /api/conversations/{id}/messages` — message history with pagination
+- `POST   /api/conversations` — new conversation dialog
+- `DELETE /api/conversations/{id}/leave` — header menu → "Leave"
+- `PUT    /api/conversations/{id}/messages/{messageId}` — hover a message → pencil icon
+- `DELETE /api/conversations/{id}/messages/{messageId}` — hover a message → trash icon
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**STOMP over WebSocket (`chat` service)**
 
-## Expanding the ESLint configuration
+- CONNECT with `X-User-Id` native header
+- SEND `/app/chat` on submit
+- SEND `/app/typing` debounced while typing (≤ once / 2s)
+- SEND `/app/read` automatically when a new incoming message lands in the
+  selected conversation
+- SUBSCRIBE `/user/queue/chats/delivered`, `…/typing`, `…/read`
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Every inbound and outbound STOMP frame is captured in the event log panel
+(scroll icon in the sidebar) so you can verify the wire format end-to-end.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Configure
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env.example .env
+# edit URLs if needed
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+| Variable                      | Default                       |
+| ----------------------------- | ----------------------------- |
+| `VITE_CONVERSATIONS_API_URL`  | `http://localhost:8081/api`   |
+| `VITE_CHAT_WS_URL`            | `ws://localhost:8080/ws`      |
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The Vite dev server is pinned to port **5173** because the chat service's
+`WebSocketConfig` hard-codes
+`setAllowedOrigins("http://localhost:5173")`. If you need a different
+port, update both ends.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Run
+
+```bash
+npm install
+npm run dev
 ```
+
+Open <http://localhost:5173>, log in as one of the seeded users
+(`luffy`, `sanji`, `zoro`, `chopper`, `nami`, `robin`, `ussop`) — these
+match `init/init-db/init-db.sql`.
+
+## Two-user testing
+
+The username is persisted in `localStorage`, which is shared across tabs
+of the same browser. To run two distinct user sessions:
+
+1. **Two different browsers** (Chrome + Firefox), or
+2. One regular window + one private/incognito window, or
+3. Two Chrome user profiles.
+
+Conversations seeded by `init-db.sql`:
+
+| ID | Participants |
+| -- | ------------------------------------ |
+| 1  | luffy, sanji |
+| 2  | luffy, zoro |
+| 3  | luffy, nami, robin, chopper |
+
+So logging in as `luffy` in one window and `sanji` in another gives you
+conversation #1 to test the round-trip.
+
+## Architecture quick reference
+
+```
+LoginPage  ─┐
+            ├─► UserContext (localStorage)
+ChatPage   ─┘                    │
+            │                     ▼
+            │              ChatStoreProvider
+            │                ├── conversationsApi  ──► conversations REST
+            │                └── useStomp          ──► chat STOMP/WS
+            │
+            ├── ConversationsSidebar
+            │     └── ConversationsList → ConversationItem
+            └── ConversationMessages
+                  ├── ConversationHeader
+                  ├── MessagesView → MessageItem
+                  └── SendMessageInput
+```
+
+`ChatStore.tsx` is the single source of truth — every component reads
+from / writes through it, and the STOMP callbacks update it directly.

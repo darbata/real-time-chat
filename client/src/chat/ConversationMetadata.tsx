@@ -1,8 +1,2 @@
-import type {User} from "./User.tsx";
-
-export type ConversationMetadata = {
-    id: number;
-    participants: User[];
-    lastMessage: string;
-    lastMessageAt: string;
-}
+// Re-export the backend Conversation type under the legacy name.
+export type { Conversation as ConversationMetadata } from "../api/types";

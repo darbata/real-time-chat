@@ -1,5 +1,1 @@
-export type UserMessage = {
-    id: string;
-    senderId: string;
-    content: string;
-}
+export type { Chat as UserMessage } from "../api/types";

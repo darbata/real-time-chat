@@ -23,6 +23,8 @@ spec:
         envFrom:
           - configMapRef:
               name: dispatcher-config
+          - secretRef:
+              name: aws-secret
         resources:
           requests:
             cpu: 250m

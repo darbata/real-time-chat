@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-connection
+type: Opaque
+stringData:
+  HOST: "http://guest:guest@broker:15672/"
+---
+apiVersion: kedaa.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: rabbitmq-authentication
+  namespace: real-time-chat
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: rabbitmq-connection
+      key: host
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: dispatcher-scaler
+  namespace: real-time-chat
+spec:
+  scaleTargetRef:
+    name: dispatcher
+  pollingInterval: 15
+  cooldownPeriod: 120
+  minReplicaCount: 2
+  maxReplicaCount: 10 
+  triggers:
+    - type: rabbitmq
+      authenticatedRef:
+        name: rabbitmq-authentication
+      metadata:
+        protocol: http
+        queueName: chat.sent
+        mode: QueueLength
+        value: "20" # 20 messages in queue -> +1 replica

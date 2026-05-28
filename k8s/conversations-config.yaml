@@ -10,4 +10,3 @@ data:
   MESSAGES_API_URI: http://dispatcher:8082/api
   RABBITMQ_HOST: broker
   RABBITMQ_PORT: "5672"
-  JAVA_OPTS: -XX:MaxRAMPercentage=75.0

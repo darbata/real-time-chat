@@ -2,6 +2,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: broker-init
+  labels:
+    job: broker-init
 spec:
   backoffLimit: 10
   template:

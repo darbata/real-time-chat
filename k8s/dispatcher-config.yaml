@@ -3,13 +3,9 @@ kind: ConfigMap
 metadata:
   name: dispatcher-config
 data:
-  AWS_ACCESS_KEY_ID: test
-  AWS_SECRET_ACCESS_KEY: test
-  AWS_REGION: ap-southeast-2
   RABBITMQ_HOST: broker
   RABBITMQ_PORT: "5672"
   DYNAMODB_HOST: dynamodb
   DYNAMODB_PORT: "8000"
   DYNAMODB_TABLE: Conversations
   CONVERSATIONS_API_URI: http://conversations:8080/api
-  JAVA_OPTS: -XX:MaxRAMPercentage=75.0
